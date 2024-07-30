@@ -1,0 +1,51 @@
+.navbarCont{
+    position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  padding: 10px 0;
+  z-index: 1000;
+  width: 100%;
+}
+
+.CompName{
+    color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  padding-left: 40px;
+}
+
+.navbarContItems {
+    display: flex;
+  gap: 20px;
+}
+
+.NavItem{
+    color: #fff;
+  text-decoration: none;
+  font-size: 18px;
+  padding-left: 25px;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.Icons{
+    display: flex;
+  gap: 10px;
+  color: #fff;
+  font-size: 24px;
+}
+
+.App.light {
+  background-color: rgb(255, 255, 255);  
+  color: #000000; 
+}
+
+.App.dark {
+  background-color: #303030;  
+  color: rgb(230, 230, 230);  
+}

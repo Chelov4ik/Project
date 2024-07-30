@@ -1,0 +1,26 @@
+.product-details-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 20px;
+}
+
+.product-details-image {
+    width: 40%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.product-details-info {
+    padding-left: 20%;
+    font-size: 30px;
+    text-align: center;
+}
+
+.product-details-info h2 {
+    margin-bottom: 10px;
+}
+
+.product-details-info p {
+    margin-bottom: 5px;
+}

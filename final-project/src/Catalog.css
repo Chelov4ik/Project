@@ -1,0 +1,38 @@
+.container {
+    display: flex;
+  }
+  
+  .box {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .box1 {
+    position: sticky;
+    top: 65px;
+    border-style: solid;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    flex: 2;
+    height: 500px;
+    margin-left: 50px;
+    margin-top: 50px;
+    border-radius: 15px;
+    border-color: rgba(128, 128, 128, 0.3);
+  }
+  
+  .box2 {
+    flex: 8; 
+  }
+  
+  .checkbox-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; 
+}
+
+.checkbox-row label {
+    margin-right: 10px; 
+}
