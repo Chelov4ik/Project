@@ -30,7 +30,8 @@ const Register = () => {
     };
 
     return (
-        <div style={{paddingTop: 100, paddingBottom: 100}} className="auth-container">
+        <div style={{height: "83vh"}}>
+        <div style={{paddingTop: 100, paddingBottom: 100, marginTop: "10vh"}} className="auth-container">
             <h2>Register</h2>
             <h5 style={{height:"auto", backgroundColor: "rgba(255, 0, 0, 0.1)"}}>{error}</h5>
             <form onSubmit={handleSubmit}>
@@ -62,10 +63,11 @@ const Register = () => {
                     />
                 </div> 
                 <button  className="center" type="submit" style={{borderColor:'black',borderRadius:10,backgroundColor: 'lightblue'}}>Register</button>
-                <p className="center" style={{width: "100%"}}>
+                <p className="center" style={{width: "100%",color: "black"}}>
                     u are our old friend? so just {"->"} <Link to="/login">Log in</Link>
                 </p>
             </form>
+        </div>
         </div>
     );
 };

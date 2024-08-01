@@ -3,6 +3,7 @@
     flex-direction: row;
     align-items: center;
     padding: 20px;
+    height: 83vh;
 }
 
 .product-details-image {

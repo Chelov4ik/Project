@@ -9,15 +9,15 @@ function Home() {
       <div>
         <div>
           <div style={{
-                height: '100%',
+                height: '83vh',
                 paddingBottom: 250, 
                 backgroundImage: `url(/BGPhoto.jpg)`,
                 backgroundRepeat: "no-repeat",
                 backgroundSize: "cover"
             }}>
               <div style={{height:70}}></div>
-            <div className="translucent-box" style={{paddingTop: 100,paddingBottom: 80}}>
-                <div style={{fontSize: 45, fontFamily: "Comic Sans MS", fontWeight: 900,color:"black"}}>ECOMERCY</div>
+            <div className="translucent-box" style={{marginTop: "15vh", paddingTop: 100,paddingBottom: 80}}>
+                <div style={{fontSize: 45, fontFamily: "Comic Sans MS", fontWeight: 900,color:"black"}}>ALISKASHOP</div>
                 <h2 style={{fontSize: 17, color: "black", fontFamily: "Comic Sans MS"}}>
                     Ваш надежный онлайн-магазин для покупок качественных товаров по доступным ценам.
                 </h2>

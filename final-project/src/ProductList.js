@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import './ProductList.css';
 import products from './Items';
 
-const ProductList = ({ priceRange, selectedCheckboxes, searchQuery, onAddToCart  }) => {
+const ProductList = ({ priceRange, selectedCheckboxes, searchQuery, onAddToCart }) => {
     const navigate = useNavigate();
 
     const handleProductClick = (id) => {
@@ -18,10 +18,9 @@ const ProductList = ({ priceRange, selectedCheckboxes, searchQuery, onAddToCart 
     const filteredProducts = products.filter(product => {
         const inPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
         const inSelectedBrands = Object.keys(selectedCheckboxes).some(brand => 
-            selectedCheckboxes[brand] && product.brand.toLowerCase() === brand );
+            selectedCheckboxes[brand] && product.brand.toLowerCase() === brand);
         const selectedSizes = Object.keys(selectedCheckboxes).filter(size => 
-            size.startsWith('_') && selectedCheckboxes[size]
-        );
+            size.startsWith('_') && selectedCheckboxes[size]);
         const inSelectedSize = selectedSizes.includes(`_${product.size}`);
         const noBrandSelected = Object.values(selectedCheckboxes).slice(0, 3).every(v => !v); 
         const noSizeSelected = selectedSizes.length === 0;
@@ -44,7 +43,9 @@ const ProductList = ({ priceRange, selectedCheckboxes, searchQuery, onAddToCart 
                         <h4>{product.brand}</h4>
                         <p>Size: {product.size}</p>
                         <p>Price: ${product.price}</p>
-                        <button onClick={(e) => handleAddToCart(product, e)}>
+                    </div> 
+                    <div className="add-to-cart-container">
+                        <button onClick={(e) => handleAddToCart(product, e)} className="add-to-cart-button">
                             Add to Cart
                         </button>
                     </div>

@@ -25,8 +25,9 @@ const Login =  ({ onLogin }) => {
     };
 
     return (
-        <div style={{paddingTop: 100, paddingBottom: 100}} className="auth-container">
-            <h2>LOGIN</h2>
+        <div style={{height: "83vh"}}>
+        <div style={{paddingTop: 100, paddingBottom: 100, marginTop: "10vh"}} className="auth-container">
+            <h2 style={{color: "black"}}>LOGIN</h2>
             <h5 style={{height:"auto", backgroundColor: "rgba(255, 0, 0, 0.1)"}}>{error}</h5>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
@@ -49,10 +50,11 @@ const Login =  ({ onLogin }) => {
                     />
                 </div>
                 <button className="center" type="submit" style={{borderColor:'black',borderRadius:10,backgroundColor: 'lightblue'}} >Log in</button>
-                <p className="center" style={{width: "100%"}}>
+                <p className="center" style={{width: "100%", color: "black"}}>
                     ur first time? just {"->"}  <Link to="/register">Register</Link>
                 </p>
             </form>
+        </div>
         </div>
     );
 };

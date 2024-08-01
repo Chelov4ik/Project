@@ -27,7 +27,7 @@ const Navbar = ({ userEmail, onLogout, toggleThemed, toggleThemew, showGifd, sho
 
   return (
     <div className='navbarCont'>  
-      <Link to='/' className='CompName'>ECOMERCY</Link>
+      <Link to='/' className='CompName'>ALISKASHOP</Link>
       <div className='navbarContItems'>
         <Link className='NavItem' to="/Home">Home</Link>
         <Link className='NavItem' to="/Catalog">Catalog</Link>
