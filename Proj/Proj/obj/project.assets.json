@@ -4344,11 +4344,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\firud\\source\\repos\\Proj\\Proj.csproj",
+      "projectUniqueName": "C:\\Users\\firud\\OneDrive\\Рабочий стол\\Proj\\Proj\\Proj.csproj",
       "projectName": "Proj",
-      "projectPath": "C:\\Users\\firud\\source\\repos\\Proj\\Proj.csproj",
+      "projectPath": "C:\\Users\\firud\\OneDrive\\Рабочий стол\\Proj\\Proj\\Proj.csproj",
       "packagesPath": "C:\\Users\\firud\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\firud\\source\\repos\\Proj\\obj\\",
+      "outputPath": "C:\\Users\\firud\\OneDrive\\Рабочий стол\\Proj\\Proj\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\firud\\AppData\\Roaming\\NuGet\\NuGet.Config",

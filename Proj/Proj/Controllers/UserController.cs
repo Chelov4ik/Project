@@ -1,92 +1,89 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Proj.Context;
+﻿using Microsoft.AspNetCore.Mvc;
 using Proj.Models;
+using Proj.Services;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Proj.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class UserController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IUserService _userService;
 
-        public UserController(AppDbContext context)
+        public UserController(IUserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
 
-        // GET: api/user
-        [HttpGet]
-        [Authorize(Roles = "admin,manager")]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateUser([FromBody] User newUser)
         {
-            return await _context.Users.ToListAsync();
+            try
+            {
+                await _userService.CreateUser(newUser);
+                return CreatedAtAction(nameof(GetUserById), new { id = newUser.Id }, newUser);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        // POST: api/user/{userId}/tasks
-        [HttpPost("{userId}/tasks")]
-        [Authorize(Roles = "admin,manager")]
-        public async Task<IActionResult> AssignTaskToUser(int userId, [FromBody] int taskId)
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-            {
-                return NotFound($"User with ID {userId} not found.");
-            }
-
-            // Проверяем, существует ли задача
-            var taskExists = await _context.Tasks.AnyAsync(t => t.Id == taskId);
-            if (!taskExists)
-            {
-                return NotFound($"Task with ID {taskId} not found.");
-            }
-
-            // Добавление ID задачи к пользователю
-            if (!user.TaskIds.Contains(taskId))
-            {
-                user.TaskIds.Add(taskId);
-                await _context.SaveChangesAsync();
-            }
-
-            return NoContent(); // Успешно добавлено
+            var users = await _userService.GetAllUsers();
+            return Ok(users);
         }
 
-        // GET: api/user/{id}
         [HttpGet("{id}")]
-        [Authorize(Roles = "admin,manager")]
         public async Task<ActionResult<User>> GetUserById(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
+            try
             {
-                return NotFound($"User with ID {id} not found.");
+                var user = await _userService.GetUserById(id);
+                return Ok(user);
             }
-
-            return user;
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
-        // DELETE: api/user/{id}
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateUserStatus(int id, [FromBody] StatusUpdateDto statusUpdateDto)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(statusUpdateDto.Status))
+                {
+                    return BadRequest("Status cannot be empty.");
+                }
+
+                await _userService.UpdateUserStatus(id, statusUpdateDto.Status);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
         [HttpDelete("{id}")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            try
             {
-                return NotFound($"User with ID {id} not found.");
+                await _userService.DeleteUser(id);
+                return NoContent();
             }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent(); // Успешно удалено
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 }

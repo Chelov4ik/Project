@@ -2,29 +2,30 @@ import React, { useEffect, useState } from 'react';
 import TaskList from './TaskList';
 
 const TaskContainer = () => {
-  const [tasks, setTasks] = useState([]); // Инициализируем как пустой массив
+  const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await fetch('http://localhost:5283/api/Tasks'); // Замените на ваш URL
+        const response = await fetch('http://localhost:5283/api/Tasks');
         const data = await response.json();
-        console.log(data); // Посмотрите, что приходит из API
         if (Array.isArray(data)) {
-          setTasks(data); // Убедитесь, что data - это массив
+          setTasks(data);
         } else {
-          setTasks([]); // Если не массив, устанавливаем пустой массив
+          setTasks([]);
         }
       } catch (error) {
         console.error("Ошибка при получении задач:", error);
-        setTasks([]); // Устанавливаем пустой массив в случае ошибки
+        // Если API не доступен, пробуем загрузить из localStorage
+        const localTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        setTasks(localTasks);
       }
     };
 
     fetchTasks();
   }, []);
 
-  return <TaskList tasks={tasks} />; // Передаем tasks в TaskList
+  return <TaskList tasks={tasks} />;
 };
 
 export default TaskContainer;

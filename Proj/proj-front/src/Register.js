@@ -8,7 +8,7 @@ const Register = () => {
   const [lastName, setLastName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [hireDate, setHireDate] = useState('');
-  const [status, setStatus] = useState('worker'); // По умолчанию статус 'worker'
+  const [status, setStatus] = useState('worker');
   const [error, setError] = useState('');
 
   const handleRegister = async (e) => {
@@ -21,10 +21,27 @@ const Register = () => {
         password,
         firstName,
         lastName,
-        birthDate, // Добавьте эту строку
-        hireDate,  // Добавьте эту строку
-        status,    // Добавьте эту строку
+        birthDate,
+        hireDate,
+        status,
       });
+
+      // Сохраняем нового пользователя в localStorage
+      const newUser = {
+        id: response.data.id, // Предположим, что ID возвращается из API
+        username,
+        firstName,
+        lastName,
+        birthDate,
+        hireDate,
+        status,
+      };
+
+      // Получаем существующих пользователей и добавляем нового
+      const existingUsers = JSON.parse(localStorage.getItem('users')) || [];
+      existingUsers.push(newUser);
+      localStorage.setItem('users', JSON.stringify(existingUsers));
+
       console.log(response.data);
       alert("Registration successful!");
     } catch (err) {
@@ -126,3 +143,4 @@ const Register = () => {
 };
 
 export default Register;
+ 

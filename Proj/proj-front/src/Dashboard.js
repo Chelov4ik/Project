@@ -15,8 +15,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!auth) return; // Проверяем, что auth существует
+  
       try {
-        if (auth?.role === 'admin' || auth?.role === 'manager') {
+        if (auth.role === 'admin' || auth.role === 'manager') {
           const userResponse = await API.get('/api/User', {
             headers: {
               Authorization: `Bearer ${auth.accessToken}`,
@@ -24,8 +26,8 @@ const Dashboard = () => {
           });
           setUsers(userResponse.data);
         }
-
-        if (auth?.role === 'admin') {
+  
+        if (auth.role === 'admin') {
           const allTasksResponse = await API.get('/api/Tasks', {
             headers: {
               Authorization: `Bearer ${auth.accessToken}`,
@@ -33,25 +35,9 @@ const Dashboard = () => {
           });
           setAllTasks(allTasksResponse.data);
         }
-
-        if (auth?.role === 'manager') {
-          const allTasksResponse = await API.get('/api/Tasks', {
-            headers: {
-              Authorization: `Bearer ${auth.accessToken}`,
-            },
-          });
-          setAllTasks(allTasksResponse.data);
-
-          const personalTaskResponse = await API.get(`/api/Tasks/user/${auth?.id}`, {
-            headers: {
-              Authorization: `Bearer ${auth.accessToken}`,
-            },
-          });
-          setTasks(personalTaskResponse.data);
-        }
-
-        if (auth?.role === 'worker') {
-          const taskResponse = await API.get(`/api/Tasks/user/${auth?.id}`, {
+  
+        if (auth.role === 'manager' || auth.role === 'worker') {
+          const taskResponse = await API.get(`/api/Tasks/user/${auth.id}`, {
             headers: {
               Authorization: `Bearer ${auth.accessToken}`,
             },
@@ -60,11 +46,13 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error('Failed to fetch data', error);
+        // Возможно, добавьте сообщение для пользователя
       }
     };
-
+  
     fetchData();
   }, [auth]);
+  
 
   const handleDelete = async (userId) => {
     try {
@@ -81,27 +69,38 @@ const Dashboard = () => {
 
   const handleAddUser = async (newUser) => {
     try {
+      console.log('Adding new user:', newUser);
+
       const response = await API.post('/api/User', newUser, {
         headers: {
           Authorization: `Bearer ${auth.accessToken}`,
+          'Content-Type': 'application/json',
         },
       });
+
       setUsers((prevUsers) => [...prevUsers, response.data]);
+      console.log('User added successfully:', response.data);
     } catch (error) {
-      console.error('Failed to add user', error);
+      if (error.response) {
+        console.error('Server error:', error.response.data);
+      } else if (error.request) {
+        console.error('No response from server:', error.request);
+      } else {
+        console.error('Error setting up request:', error.message);
+      }
     }
   };
 
   const renderSection = () => {
     switch (currentSection) {
       case 'users':
-        return <UserList users={users} onDelete={handleDelete} />;
+        return <UserList users={users} onDelete={handleDelete} onAdd={handleAddUser} currentUser={auth} />;
       case 'addUser':
         return <AddUserForm onAddUser={handleAddUser} />;
       case 'tasks':
-        return <TaskList tasks={allTasks} />;
+        return <TaskList tasks={allTasks} users={users} />;
       case 'myTasks':
-        return <TaskList tasks={tasks} />;
+        return <TaskList tasks={tasks} users={users} />;
       default:
         return <p>Welcome to the Dashboard</p>;
     }
@@ -110,7 +109,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen flex">
       <Sidebar setCurrentSection={setCurrentSection} />
-      <div className="flex-grow bg-gray-100 p-8">
+      <div className="flex-grow bg-gray-100 p-8 ml-16"> {/* Добавляем отступ слева */}
         <h1 className="text-4xl font-bold text-gray-800">Dashboard</h1>
         <p className="text-xl text-gray-600 mb-8">
           Logged in as: <span className="font-semibold">{auth?.role}</span>
