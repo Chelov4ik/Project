@@ -55,5 +55,27 @@ namespace Proj.Services
                 await _context.SaveChangesAsync();
             }
         }
+
+        // Добавьте метод назначения задачи пользователю
+        public async Task AssignTaskToUser(int userId, int taskId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                throw new Exception($"User with ID {userId} not found.");
+            }
+
+            var taskExists = await _context.Tasks.AnyAsync(t => t.Id == taskId);
+            if (!taskExists)
+            {
+                throw new Exception($"Task with ID {taskId} not found.");
+            }
+
+            if (!user.TaskIds.Contains(taskId))
+            {
+                user.TaskIds.Add(taskId);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

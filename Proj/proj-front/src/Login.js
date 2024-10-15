@@ -7,8 +7,8 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Добавлено состояние загрузки
-  const { login } = useContext(AuthContext); // Используем функцию login
+  const [isLoading, setIsLoading] = useState(false);  
+  const { login } = useContext(AuthContext); 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {

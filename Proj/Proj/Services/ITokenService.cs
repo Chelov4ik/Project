@@ -4,8 +4,11 @@
 
     public interface ITokenService
     {
-        string GenerateToken(ClaimsIdentity identity); // Генерация основного токена
-        string GenerateAccessToken(ClaimsIdentity identity); // Генерация токена доступа
-        string GenerateRefreshToken(); // Генерация токена обновления
+        string GenerateAccessToken(ClaimsIdentity identity);
+        string GenerateRefreshToken();
+        string SecretKey { get; }
+        string Issuer { get; }
+        string Audience { get; }
     }
+
 }

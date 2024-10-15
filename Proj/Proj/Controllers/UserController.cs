@@ -2,7 +2,9 @@
 using Proj.Models;
 using Proj.Services;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace Proj.Controllers
 {
@@ -27,7 +29,27 @@ namespace Proj.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] LoginDTO loginRequest)
+        {
+            try
+            {
+                var user = _userService.ValidateUser(loginRequest.Username, loginRequest.Password);
+                if (user == null)
+                {
+                    return Unauthorized(new { message = "Invalid credentials" });
+                }
+
+                var tokens = _userService.GenerateTokensForUser(user);
+                return Ok(tokens); // Возвращаем access и refresh токены
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
 
@@ -48,7 +70,7 @@ namespace Proj.Controllers
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(new { message = ex.Message });
             }
         }
 
@@ -59,7 +81,7 @@ namespace Proj.Controllers
             {
                 if (string.IsNullOrEmpty(statusUpdateDto.Status))
                 {
-                    return BadRequest("Status cannot be empty.");
+                    return BadRequest(new { message = "Status cannot be empty." });
                 }
 
                 await _userService.UpdateUserStatus(id, statusUpdateDto.Status);
@@ -67,10 +89,9 @@ namespace Proj.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
-
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
@@ -82,8 +103,27 @@ namespace Proj.Controllers
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(new { message = ex.Message });
             }
         }
-    }
+
+        [HttpPost("upload-profile-picture/{userId}")]
+        public async Task<IActionResult> UploadProfilePicture(int userId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "No file uploaded." });
+
+            var filePath = Path.Combine("wwwroot", "uploads", file.FileName); // Путь для сохранения файла
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var profilePictureUrl = $"/uploads/{file.FileName}"; // URL для доступа к файлу
+            await _userService.UpdateProfilePicture(userId, profilePictureUrl);
+
+            return Ok(new { Url = profilePictureUrl });
+        }
+
+}
 }

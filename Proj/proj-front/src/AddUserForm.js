@@ -7,19 +7,42 @@ const AddUserForm = ({ onAddUser }) => {
   const [birthDate, setBirthDate] = useState('');
   const [hireDate, setHireDate] = useState('');
   const [status, setStatus] = useState('worker'); // По умолчанию worker
-  const [password, setPassword] = useState(''); // Добавлено состояние для пароля
+  const [password, setPassword] = useState(''); // Состояние для пароля
+  const [department, setDepartment] = useState('IT'); // По умолчанию IT
+  const [profilePicture, setProfilePicture] = useState(null); // Состояние для хранения фотографии профиля
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    const userData = {
+      username,
+      firstName,
+      lastName,
+      birthDate,
+      hireDate,
+      status,
+      password,
+      department,
+      profilePicture, // Добавляем фотографию профиля в данные пользователя
+    };
+
     // Вызываем функцию для добавления пользователя
-    onAddUser({ username, firstName, lastName, birthDate, hireDate, status, password }); // Передаем пароль
+    onAddUser(userData);
+    
+    // Сбрасываем поля формы
     setUsername('');
     setFirstName('');
     setLastName('');
     setBirthDate('');
     setHireDate('');
     setStatus('worker');
-    setPassword(''); // Сбрасываем поле пароля
+    setPassword('');
+    setDepartment('IT');
+    setProfilePicture(null); // Сбрасываем поле фотографии профиля
+  };
+
+  const handleFileChange = (e) => {
+    setProfilePicture(e.target.files[0]); // Сохраняем выбранный файл
   };
 
   return (
@@ -37,14 +60,14 @@ const AddUserForm = ({ onAddUser }) => {
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         />
       </div>
-      
+
       <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
           Password
         </label>
         <input
           id="password"
-          type="password" // Тип поля для пароля
+          type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -124,7 +147,36 @@ const AddUserForm = ({ onAddUser }) => {
         </select>
       </div>
 
-      
+      <div className="mb-4">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="department">
+          Department
+        </label>
+        <select
+          id="department"
+          value={department}
+          onChange={(e) => setDepartment(e.target.value)}
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        >
+          <option value="IT">IT</option>
+          <option value="HR">HR</option>
+          <option value="Finance">Finance</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Operations">Operations</option>
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="profilePicture">
+          Profile Picture
+        </label>
+        <input
+          id="profilePicture"
+          type="file"
+          accept="image/*" // Ограничиваем выбор только изображениями
+          onChange={handleFileChange}
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        />
+      </div>
 
       <div className="flex items-center justify-between">
         <button

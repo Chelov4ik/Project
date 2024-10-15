@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Proj.Models;
 using System.Threading.Tasks;
-using Proj.Models;
 
 namespace Proj.Services
 {
@@ -11,6 +10,9 @@ namespace Proj.Services
         Task<MyTask> CreateTask(MyTask task);
         Task UpdateTask(MyTask task);
         Task DeleteTask(int id);
-        Task<IEnumerable<MyTask>> GetTasksByUserId(int userId); // Новый метод
+        Task<IEnumerable<MyTask>> GetTasksByUserId(int userId);
+
+        // Добавьте этот метод
+        Task AssignTaskToUser(int userId, int taskId);
     }
 }

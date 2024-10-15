@@ -5,6 +5,7 @@ import TaskList from './TaskList';
 import UserList from './UserList';
 import AddUserForm from './AddUserForm'; // Импортируем форму
 import Sidebar from './Sidebar'; // Импортируем Sidebar
+import CreateTask from './CreateTask';
 
 const Dashboard = () => {
   const { auth } = useContext(AuthContext);
@@ -19,7 +20,7 @@ const Dashboard = () => {
   
       try {
         if (auth.role === 'admin' || auth.role === 'manager') {
-          const userResponse = await API.get('/api/User', {
+          const userResponse = await API.get('/api/User/all', {
             headers: {
               Authorization: `Bearer ${auth.accessToken}`,
             },
@@ -27,7 +28,7 @@ const Dashboard = () => {
           setUsers(userResponse.data);
         }
   
-        if (auth.role === 'admin') {
+        if (auth.role === 'admin' || auth.role === 'manager') {
           const allTasksResponse = await API.get('/api/Tasks', {
             headers: {
               Authorization: `Bearer ${auth.accessToken}`,
@@ -45,8 +46,7 @@ const Dashboard = () => {
           setTasks(taskResponse.data);
         }
       } catch (error) {
-        console.error('Failed to fetch data', error);
-        // Возможно, добавьте сообщение для пользователя
+        console.error('Failed to fetch data', error); 
       }
     };
   
@@ -68,10 +68,8 @@ const Dashboard = () => {
   };
 
   const handleAddUser = async (newUser) => {
-    try {
-      console.log('Adding new user:', newUser);
-
-      const response = await API.post('/api/User', newUser, {
+    try {  
+      const response = await API.post('/api/Auth/register', newUser, {
         headers: {
           Authorization: `Bearer ${auth.accessToken}`,
           'Content-Type': 'application/json',
@@ -89,7 +87,7 @@ const Dashboard = () => {
         console.error('Error setting up request:', error.message);
       }
     }
-  };
+  }; 
 
   const renderSection = () => {
     switch (currentSection) {
@@ -101,11 +99,13 @@ const Dashboard = () => {
         return <TaskList tasks={allTasks} users={users} />;
       case 'myTasks':
         return <TaskList tasks={tasks} users={users} />;
+      case 'createTask': // Новая секция
+        return <CreateTask />;
       default:
         return <p>Welcome to the Dashboard</p>;
     }
   };
-
+  
   return (
     <div className="min-h-screen flex">
       <Sidebar setCurrentSection={setCurrentSection} />

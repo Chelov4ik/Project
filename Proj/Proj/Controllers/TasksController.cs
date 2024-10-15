@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization; // Не забудьте добавить это
+using Microsoft.AspNetCore.Mvc;
 using Proj.Models;
 using Proj.Services;
 using System.Collections.Generic;
@@ -45,11 +46,30 @@ namespace Proj.Controllers
             return Ok(tasks);
         }
 
-        // Создать новую задачу
+        // Создать новую задачу с назначением пользователей
         [HttpPost]
-        public async Task<ActionResult<MyTask>> CreateTask(MyTask task)
+        [Authorize(Roles = "manager, admin")] // Проверка прав доступа
+        public async Task<ActionResult<MyTask>> CreateTask([FromBody] CreateTaskDTO createTaskDto)
         {
+            var task = new MyTask
+            {
+                Title = createTaskDto.Title,
+                Description = createTaskDto.Description,
+                IssuedDate = DateTime.UtcNow,
+                Deadline = createTaskDto.Deadline,
+                AssignedUserIds = createTaskDto.AssignedUserIds,
+                Status = "Issued", // Статус по умолчанию
+                Priority = createTaskDto.Priority
+            };
+
             var createdTask = await _taskService.CreateTask(task);
+
+            // Назначаем задачу пользователям
+            foreach (var userId in createTaskDto.AssignedUserIds)
+            {
+                await _taskService.AssignTaskToUser(userId, createdTask.Id);
+            }
+
             return CreatedAtAction(nameof(GetTaskById), new { id = createdTask.Id }, createdTask);
         }
 

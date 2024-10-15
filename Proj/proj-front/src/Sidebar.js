@@ -8,11 +8,10 @@ const Sidebar = ({ setCurrentSection }) => {
 
   return (
     <div
-      className={`fixed left-0 top-0 h-full bg-gray-800 text-white p-2 transition-all duration-300 ease-in-out ${isExpanded ? 'w-64' : 'w-16'}`}
+      className={`  z-10 fixed left-0 top-0 h-full bg-gray-800 text-white p-2 transition-all duration-300 ease-in-out ${isExpanded ? 'w-64' : 'w-16'}`}
       onMouseEnter={() => setIsExpanded(true)} // Раскрываем при наведении
       onMouseLeave={() => setIsExpanded(false)} // Скрываем при уходе мыши
-    >
-      <h2 className={`text-2xl font-bold mb-6 ${isExpanded ? 'block' : 'hidden'}`}>Navigation</h2>
+    > 
       <ul>
         {(auth?.role === 'admin' || auth?.role === 'manager') && (
           <li
@@ -32,6 +31,17 @@ const Sidebar = ({ setCurrentSection }) => {
             {isExpanded && <span className="ml-2">Add User</span>}
           </li>
         )}
+        {(auth?.role === 'admin' || auth?.role === 'manager') && (
+  <li
+    className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"
+    onClick={() => setCurrentSection('createTask')} // Переход на CreateTask
+  >
+    <FaPlus className="text-lg" />
+    {isExpanded && <span className="ml-2">Create Task</span>}
+  </li>
+)}
+
+
         {(auth?.role === 'admin' || auth?.role === 'manager') && (
           <li
             className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"

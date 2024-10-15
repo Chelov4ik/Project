@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import API from './api';
 
 const UserList = ({ currentUser }) => {
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [isInfoModalOpen, setInfoModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
@@ -34,36 +35,41 @@ const UserList = ({ currentUser }) => {
     fetchUsers();
   }, []);
 
+  const handleUserClick = (user) => {
+    setSelectedUser(user);
+    setInfoModalOpen(true);
+  };
+
   const handleDeleteClick = (user) => {
-    setUserToDelete(user);
-    setModalOpen(true);
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (userToDelete) {
+    if (selectedUser) {
       try {
-        await API.delete(`api/User/${userToDelete.id}`, {
+        await API.delete(`api/User/${selectedUser.id}`, {
           headers: {
             Authorization: `Bearer ${currentUser.accessToken}`,
           },
         });
 
-        const updatedUsers = users.filter(user => user.id !== userToDelete.id);
+        const updatedUsers = users.filter(user => user.id !== selectedUser.id);
         setUsers(updatedUsers);
         setError('');
       } catch (error) {
         console.error("Failed to delete user", error);
         setError('Failed to delete user. Please try again.');
       } finally {
-        setUserToDelete(null);
-        setModalOpen(false);
+        setSelectedUser(null);
+        setDeleteModalOpen(false);
       }
     }
   };
 
   const cancelDelete = () => {
-    setUserToDelete(null);
-    setModalOpen(false);
+    setSelectedUser(null);
+    setDeleteModalOpen(false);
   };
 
   const handleStatusChange = async (userId, newStatus) => {
@@ -132,9 +138,16 @@ const UserList = ({ currentUser }) => {
             <ul className="divide-y divide-gray-200">
               {groupedUsers[role].map((user) => (
                 <li key={user.id} className={`flex justify-between items-center py-3 hover:bg-gray-100 transition-colors duration-200`}>
-                  <span className={`font-semibold ${getColorByStatus(user.status)}`}>{user.username}</span>
+                  <div
+                    className="flex-grow cursor-pointer"
+                    onClick={() => handleUserClick(user)}
+                  >
+                    <span className={`font-semibold ${getColorByStatus(user.status)}`}>
+                      {user.username}
+                    </span>
+                  </div>
                   <div className="flex items-center space-x-2">
-                    {currentUser && currentUser.role === 'admin' && user.id !== currentUser.id && ( // Проверяем, что это не текущий пользователь
+                    {currentUser && currentUser.role === 'admin' && user.id !== currentUser.id && (
                       <>
                         <select
                           value={user.status}
@@ -153,9 +166,6 @@ const UserList = ({ currentUser }) => {
                         </button>
                       </>
                     )}
-                    {currentUser && currentUser.role === 'manager' && user.id !== currentUser.id && ( // Убираем кнопки для менеджеров
-                      <span className="text-gray-500">No actions available</span>
-                    )}
                   </div>
                 </li>
               ))}
@@ -164,12 +174,36 @@ const UserList = ({ currentUser }) => {
         )
       ))}
 
-      {isModalOpen && (
+      {/* Modal for showing user information */}
+      {isInfoModalOpen && selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-lg font-bold mb-4">Delete User</h2>
-            <p className="mb-4">Are you sure you want to delete {userToDelete?.username}?</p>
-            <div className="flex justify-end">
+            <h2 className="text-lg font-bold mb-4">User Details</h2>
+            <p><strong>Username:</strong> {selectedUser.username}</p>
+            <p><strong>First Name:</strong> {selectedUser.firstName}</p>
+            <p><strong>Last Name:</strong> {selectedUser.lastName}</p>
+            <p><strong>Birth Date:</strong> {selectedUser.birthDate}</p>
+            <p><strong>Hire Date:</strong> {selectedUser.hireDate}</p>
+            <p><strong>Status:</strong> {selectedUser.status}</p>
+            <div className="flex justify-end mt-4">
+              <button
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition-colors duration-200"
+                onClick={() => setInfoModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for confirming user deletion */}
+      {isDeleteModalOpen && selectedUser && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-lg font-bold mb-4">Confirm Deletion</h2>
+            <p>Are you sure you want to delete user <strong>{selectedUser.username}</strong>?</p>
+            <div className="flex justify-end mt-4">
               <button
                 className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition-colors duration-200 mr-2"
                 onClick={cancelDelete}
@@ -180,7 +214,7 @@ const UserList = ({ currentUser }) => {
                 className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200"
                 onClick={confirmDelete}
               >
-                Confirm
+                Delete
               </button>
             </div>
           </div>

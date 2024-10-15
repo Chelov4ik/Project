@@ -16,5 +16,8 @@ namespace Proj.Services
         Task UpdateUserStatus(int userId, string newStatus);
         Task AssignTaskToUser(int userId, int taskId);
         Task DeleteUser(int id);
+        object GenerateTokensForUser(User user);
+        Task<AuthResponseDTO> AuthenticateAsync(LoginDTO model);
+         Task UpdateProfilePicture(int userId, string profilePictureUrl);
     }
 }

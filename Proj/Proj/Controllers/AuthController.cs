@@ -22,7 +22,7 @@ public class AuthController : ControllerBase
 
     // Метод для логина
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginModel model)
+    public IActionResult Login([FromBody] LoginDTO model)
     {
         var user = _userService.ValidateUser(model.Username, model.Password);
         if (user == null)
@@ -58,7 +58,7 @@ public class AuthController : ControllerBase
 
     // Метод для регистрации
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterModel model)
+    public async Task<IActionResult> Register([FromBody] RegisterDTO model)
     {
         // Проверка на наличие обязательных полей
         if (string.IsNullOrWhiteSpace(model.Username) || string.IsNullOrWhiteSpace(model.Password))
