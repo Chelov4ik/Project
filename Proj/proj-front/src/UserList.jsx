@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react';
 import API from './api';
+import UserCard from './UserCard'; // Импортируем компонент UserCard
+import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import EditUserModal from './EditUserModal';
 
 const UserList = ({ currentUser }) => {
-  const [isInfoModalOpen, setInfoModalOpen] = useState(false);
-  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [updatedUser, setUpdatedUser] = useState({});
+  const [expandedDepartments, setExpandedDepartments] = useState({});
 
   const fetchUsers = async () => {
     try {
@@ -21,8 +27,7 @@ const UserList = ({ currentUser }) => {
         throw new Error('Network response was not ok');
       }
 
-      const data = response.data;
-      setUsers(data);
+      setUsers(response.data);
       setError('');
     } catch (error) {
       console.error("Error fetching users from API", error);
@@ -35,9 +40,38 @@ const UserList = ({ currentUser }) => {
     fetchUsers();
   }, []);
 
+  const groupedUsers = users.reduce((acc, user) => {
+    const department = user.department || 'Other';
+    if (!acc[department]) {
+      acc[department] = [];
+    }
+    acc[department].push(user);
+
+    acc[department].sort((a, b) => {
+      const roleOrder = { admin: 1, manager: 2, worker: 3 };
+      return (roleOrder[a.role] || 4) - (roleOrder[b.role] || 4);
+    });
+    
+    return acc;
+  }, {});
+
+  useEffect(() => {
+    const allDepartmentsExpanded = Object.keys(groupedUsers).reduce((acc, department) => {
+      acc[department] = true;
+      return acc;
+    }, {});
+    setExpandedDepartments(allDepartmentsExpanded);
+  }, [users]);
+
+  const sortedDepartments = Object.keys(groupedUsers).sort((a, b) => {
+    if (a === 'Other') return 1;
+    if (b === 'Other') return -1;
+    return a.localeCompare(b);
+  });
+
   const handleUserClick = (user) => {
     setSelectedUser(user);
-    setInfoModalOpen(true);
+    setModalOpen(true);
   };
 
   const handleDeleteClick = (user) => {
@@ -45,8 +79,14 @@ const UserList = ({ currentUser }) => {
     setDeleteModalOpen(true);
   };
 
+  const handleEditClick = (user) => {
+    setUpdatedUser(user);
+    setEditModalOpen(true);
+  };
+  
+
   const confirmDelete = async () => {
-    if (selectedUser) {
+    if (selectedUser && selectedUser.id) {
       try {
         await API.delete(`api/User/${selectedUser.id}`, {
           headers: {
@@ -64,55 +104,43 @@ const UserList = ({ currentUser }) => {
         setSelectedUser(null);
         setDeleteModalOpen(false);
       }
+    } else {
+      console.error("No user selected for deletion or user ID is missing");
     }
   };
 
-  const cancelDelete = () => {
-    setSelectedUser(null);
-    setDeleteModalOpen(false);
-  };
-
-  const handleStatusChange = async (userId, newStatus) => {
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
     try {
-      await API.put(`api/User/${userId}/status`, { status: newStatus }, {
+      const response = await API.put(`api/User/${updatedUser.id}`, updatedUser, {
         headers: {
           Authorization: `Bearer ${currentUser.accessToken}`,
         },
       });
 
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === userId ? { ...user, status: newStatus } : user
-        )
-      );
-      setError('');
+      if (response.status === 204) {
+        const updatedUsers = users.map(user =>
+          user.id === updatedUser.id ? updatedUser : user
+        );
+        setUsers(updatedUsers);
+        setError('');
+        setEditModalOpen(false);
+        setUpdatedUser({});
+        setSelectedUser(null);
+      } else {
+        throw new Error('Failed to update user');
+      }
     } catch (error) {
-      console.error("Failed to update user status", error);
-      setError('Failed to update user status. Please try again.');
+      console.error("Failed to update user", error);
+      setError('Failed to update user. Please try again.');
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user.username?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const groupedUsers = {
-    admin: filteredUsers.filter(user => user.status === 'admin'),
-    manager: filteredUsers.filter(user => user.status === 'manager'),
-    worker: filteredUsers.filter(user => user.status === 'worker'),
-  };
-
-  const getColorByStatus = (status) => {
-    switch (status) {
-      case 'admin':
-        return 'text-green-500';
-      case 'manager':
-        return 'text-orange-500';
-      case 'worker':
-        return 'text-gray-500';
-      default:
-        return 'text-black';
-    }
+  const toggleDepartment = (department) => {
+    setExpandedDepartments((prev) => ({
+      ...prev,
+      [department]: !prev[department]
+    }));
   };
 
   return (
@@ -131,90 +159,108 @@ const UserList = ({ currentUser }) => {
         />
       </div>
 
-      {Object.keys(groupedUsers).map((role) => (
-        groupedUsers[role].length > 0 && (
-          <div key={role} className="mb-4">
-            <h3 className={`text-xl font-bold ${getColorByStatus(role)}`}>{role.charAt(0).toUpperCase() + role.slice(1)}s</h3>
-            <ul className="divide-y divide-gray-200">
-              {groupedUsers[role].map((user) => (
-                <li key={user.id} className={`flex justify-between items-center py-3 hover:bg-gray-100 transition-colors duration-200`}>
-                  <div
-                    className="flex-grow cursor-pointer"
-                    onClick={() => handleUserClick(user)}
-                  >
-                    <span className={`font-semibold ${getColorByStatus(user.status)}`}>
-                      {user.username}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {currentUser && currentUser.role === 'admin' && user.id !== currentUser.id && (
-                      <>
-                        <select
-                          value={user.status}
-                          onChange={(e) => handleStatusChange(user.id, e.target.value)}
-                          className="border rounded p-1"
-                        >
-                          <option value="worker">Worker</option>
-                          <option value="manager">Manager</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                        <button
-                          className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition-colors duration-200"
-                          onClick={() => handleDeleteClick(user)}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
+      {sortedDepartments.map((department) => (
+        <div key={department} className="mb-4">
+          <div
+            className="flex justify-between items-center cursor-pointer"
+            onClick={() => toggleDepartment(department)}
+          >
+            <h3 className="text-xl font-bold text-gray-800">{department}</h3>
+            {expandedDepartments[department] ? <FaChevronUp /> : <FaChevronDown />}
           </div>
-        )
+
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 transition-all duration-500 ease-in-out ${
+              expandedDepartments[department] ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+            }`}
+          >
+            {groupedUsers[department]
+              .filter(user => user.username.toLowerCase().includes(searchTerm.toLowerCase()))
+              .map((user) => (
+                <UserCard 
+                  key={user.id} 
+                  user={user} 
+                  currentUser={currentUser}
+                  onUserClick={handleUserClick} 
+                  onEditClick={handleEditClick} 
+                  onDeleteClick={handleDeleteClick}
+                />
+              ))}
+          </div>
+        </div>
       ))}
 
-      {/* Modal for showing user information */}
-      {isInfoModalOpen && selectedUser && (
+      {/* User Details Modal */}
+      {isModalOpen && selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-lg font-bold mb-4">User Details</h2>
-            <p><strong>Username:</strong> {selectedUser.username}</p>
-            <p><strong>First Name:</strong> {selectedUser.firstName}</p>
-            <p><strong>Last Name:</strong> {selectedUser.lastName}</p>
-            <p><strong>Birth Date:</strong> {selectedUser.birthDate}</p>
-            <p><strong>Hire Date:</strong> {selectedUser.hireDate}</p>
-            <p><strong>Status:</strong> {selectedUser.status}</p>
-            <div className="flex justify-end mt-4">
-              <button
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition-colors duration-200"
-                onClick={() => setInfoModalOpen(false)}
-              >
-                Close
-              </button>
+            <div className="mb-4">
+              <label className="block text-gray-700">Username</label>
+              <input
+                type="text"
+                value={selectedUser.username}
+                className="border rounded w-full py-2 px-3"
+                readOnly
+              />
             </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Department</label>
+              <input
+                type="text"
+                value={selectedUser.department || 'N/A'}
+                className="border rounded w-full py-2 px-3"
+                readOnly
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Status</label>
+              <input
+                type="text"
+                value={selectedUser.status}
+                className="border rounded w-full py-2 px-3"
+                readOnly
+              />
+            </div>
+            <button 
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              onClick={() => setModalOpen(false)}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
 
-      {/* Modal for confirming user deletion */}
-      {isDeleteModalOpen && selectedUser && (
+      {/* Edit User Modal */}
+      {isEditModalOpen && (
+        <EditUserModal
+        isOpen={isEditModalOpen}
+        updatedUser={updatedUser}
+        setUpdatedUser={setUpdatedUser}
+        handleEditSubmit={handleEditSubmit}
+        onClose={() => setEditModalOpen(false)}
+      />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-lg font-bold mb-4">Confirm Deletion</h2>
-            <p>Are you sure you want to delete user <strong>{selectedUser.username}</strong>?</p>
-            <div className="flex justify-end mt-4">
-              <button
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition-colors duration-200 mr-2"
-                onClick={cancelDelete}
+            <h2 className="text-lg font-bold mb-4">Confirm Delete</h2>
+            <p>Are you sure you want to delete {selectedUser.username}?</p>
+            <div className="flex justify-between mt-4">
+              <button 
+                onClick={confirmDelete} 
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Yes, Delete
+              </button>
+              <button 
+                onClick={() => setDeleteModalOpen(false)} 
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
               >
                 Cancel
-              </button>
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200"
-                onClick={confirmDelete}
-              >
-                Delete
               </button>
             </div>
           </div>

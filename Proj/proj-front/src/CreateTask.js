@@ -39,7 +39,8 @@ const CreateTask = () => {
       description,
       deadline,
       priority,
-      notes, // Добавляем заметки в новый объект задачи
+      status: "Issued",
+      notes: notes.length > 0 ? notes : "EMPTY...",  
       assignedUserIds: assignedUserIds.length > 0 ? assignedUserIds : [0],
     };
 

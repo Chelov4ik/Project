@@ -15,16 +15,17 @@ const AddUserForm = ({ onAddUser }) => {
     e.preventDefault();
     
     const userData = {
-      username,
-      firstName,
-      lastName,
-      birthDate,
-      hireDate,
-      status,
-      password,
-      department,
-      profilePicture, // Добавляем фотографию профиля в данные пользователя
+        username,
+        firstName,
+        lastName,
+        birthDate,
+        hireDate,
+        status,
+        password,
+        department,
     };
+
+    console.log("User Data:", userData); // Вывод значений в консоль
 
     // Вызываем функцию для добавления пользователя
     onAddUser(userData);
@@ -38,12 +39,12 @@ const AddUserForm = ({ onAddUser }) => {
     setStatus('worker');
     setPassword('');
     setDepartment('IT');
-    setProfilePicture(null); // Сбрасываем поле фотографии профиля
-  };
+};
 
-  const handleFileChange = (e) => {
-    setProfilePicture(e.target.files[0]); // Сохраняем выбранный файл
-  };
+
+  //const handleFileChange = (e) => {
+  //  setProfilePicture(e.target.files[0]); // Сохраняем выбранный файл
+  //};
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
@@ -165,7 +166,7 @@ const AddUserForm = ({ onAddUser }) => {
         </select>
       </div>
 
-      <div className="mb-4">
+      {/*<div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="profilePicture">
           Profile Picture
         </label>
@@ -177,12 +178,12 @@ const AddUserForm = ({ onAddUser }) => {
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         />
       </div>
-
+        */}
       <div className="flex items-center justify-between">
         <button
           type="submit"
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        >
+        > 
           Add User
         </button>
       </div>
