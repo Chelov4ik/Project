@@ -2,7 +2,7 @@
 using Proj.Context;
 using Proj.Models;
 using System.Collections.Generic;
-using System.Linq; // Не забудьте добавить using для LINQ
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Proj.Services
@@ -40,7 +40,7 @@ namespace Proj.Services
                 .ToListAsync();
         }
 
-        public async Task UpdateTask(MyTask task) // Обратите внимание на тип возвращаемого значения
+        public async Task UpdateTask(MyTask task)
         {
             _context.Tasks.Update(task);
             await _context.SaveChangesAsync();
@@ -56,7 +56,6 @@ namespace Proj.Services
             }
         }
 
-        // Добавьте метод назначения задачи пользователю
         public async Task AssignTaskToUser(int userId, int taskId)
         {
             var user = await _context.Users.FindAsync(userId);

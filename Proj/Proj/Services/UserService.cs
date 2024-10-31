@@ -81,6 +81,10 @@ namespace Proj.Services
             {
                 throw new Exception("User with this username already exists.");
             }
+            if (string.IsNullOrEmpty(newUser.Department))
+            {
+                throw new ArgumentException("Department cannot be null or empty.");
+            }
 
             newUser.RefreshToken = _tokenService.GenerateRefreshToken(); // Генерация refresh token
 
@@ -212,17 +216,39 @@ namespace Proj.Services
             return _context.Users.SingleOrDefault(u => u.RefreshToken == refreshToken);
         }
 
-        public async Task UpdateProfilePicture(int userId, string profilePictureUrl)
+        // Proj.Services/UserService.cs
+        public async Task UpdateUser(int id, UpdateUserDTO updateUserDto)
         {
-            var user = await _context.Users.FindAsync(userId);
+            var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                throw new Exception($"User with ID {userId} not found.");
+                throw new Exception($"User with ID {id} not found.");
             }
 
-            user.ProfilePictureUrl = profilePictureUrl;
-            await _context.SaveChangesAsync();
+            // Обновляем свойства пользователя
+            user.Username = updateUserDto.Username ?? user.Username;
+            user.FirstName = updateUserDto.FirstName ?? user.FirstName;
+            user.LastName = updateUserDto.LastName ?? user.LastName;
+            user.BirthDate = updateUserDto.BirthDate != default ? updateUserDto.BirthDate : user.BirthDate;
+            user.HireDate = updateUserDto.HireDate != default ? updateUserDto.HireDate : user.HireDate;
+            user.Status = updateUserDto.Status ?? user.Status;
+            user.TaskIds = updateUserDto.TaskIds ?? user.TaskIds;
+
+            await _context.SaveChangesAsync(); // Сохраняем изменения
         }
+
+
+        //public async Task UpdateProfilePicture(int userId, string profilePictureUrl)
+        //{
+        //    var user = await _context.Users.FindAsync(userId);
+        //    if (user == null)
+        //    {
+        //        throw new Exception($"User with ID {userId} not found.");
+        //    }
+        //
+        //    user.ProfilePictureUrl = profilePictureUrl;
+        //    await _context.SaveChangesAsync();
+        //}
 
     }
 }

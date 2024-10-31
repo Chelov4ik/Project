@@ -15,9 +15,11 @@
         public string Status { get; set; } // Например, "worker", "manager", "admin"
         public List<int> TaskIds { get; set; } = new List<int>(); // Хранить ID задач
         public string RefreshToken { get; set; } // Добавлено поле для хранения Refresh Token
-        public string Department { get; set; } = "All";
+        public string Department { get; set; }
 
         // Поле для хранения URL фотографии профиля
-        public string ProfilePictureUrl { get; set; } // Путь к фотографии профиля
+        //public string? ProfilePictureUrl { get; set; } // Путь к фотографии профиля
     }
+
 }
+

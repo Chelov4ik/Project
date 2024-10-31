@@ -81,7 +81,8 @@ public class AuthController : ControllerBase
             LastName = model.LastName,
             BirthDate = model.BirthDate,
             HireDate = model.HireDate,
-            Status = model.Status // Убедитесь, что статус валиден
+            Status = model.Status, // Убедитесь, что статус валиден
+            Department = model.Department 
         };
 
         // Создание пользователя в базе данных

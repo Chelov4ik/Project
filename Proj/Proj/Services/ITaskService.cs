@@ -1,4 +1,5 @@
 ﻿using Proj.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Proj.Services
@@ -7,12 +8,10 @@ namespace Proj.Services
     {
         Task<IEnumerable<MyTask>> GetAllTasks();
         Task<MyTask> GetTaskById(int id);
+        Task<IEnumerable<MyTask>> GetTasksByUserId(int userId);
         Task<MyTask> CreateTask(MyTask task);
         Task UpdateTask(MyTask task);
         Task DeleteTask(int id);
-        Task<IEnumerable<MyTask>> GetTasksByUserId(int userId);
-
-        // Добавьте этот метод
         Task AssignTaskToUser(int userId, int taskId);
     }
 }

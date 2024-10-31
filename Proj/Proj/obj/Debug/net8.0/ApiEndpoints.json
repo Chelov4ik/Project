@@ -168,6 +168,27 @@
   },
   {
     "ContainingType": "Proj.Controllers.TasksController",
+    "Method": "UpdateTaskProgress",
+    "RelativePath": "api/Tasks/{id}/progress",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "progressDto",
+        "Type": "Proj.Models.UpdateTaskProgressDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Proj.Controllers.TasksController",
     "Method": "GetTasksByUserId",
     "RelativePath": "api/Tasks/user/{userId}",
     "HttpMethod": "GET",
@@ -229,6 +250,27 @@
       {
         "Name": "id",
         "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Proj.Controllers.UserController",
+    "Method": "EditUser",
+    "RelativePath": "api/User/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "updateUserDto",
+        "Type": "Proj.Models.UpdateUserDTO",
         "IsRequired": true
       }
     ],

@@ -106,24 +106,39 @@ namespace Proj.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
-
-        [HttpPost("upload-profile-picture/{userId}")]
-        public async Task<IActionResult> UploadProfilePicture(int userId, IFormFile file)
+        // Proj.Controllers/UserController.cs
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditUser(int id, [FromBody] UpdateUserDTO updateUserDto)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest(new { message = "No file uploaded." });
-
-            var filePath = Path.Combine("wwwroot", "uploads", file.FileName); // Путь для сохранения файла
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await file.CopyToAsync(stream);
+                await _userService.UpdateUser(id, updateUserDto);
+                return NoContent(); // Возвращаем 204 No Content при успешном обновлении
             }
-
-            var profilePictureUrl = $"/uploads/{file.FileName}"; // URL для доступа к файлу
-            await _userService.UpdateProfilePicture(userId, profilePictureUrl);
-
-            return Ok(new { Url = profilePictureUrl });
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-}
+
+        //[HttpPost("upload-profile-picture/{userId}")]
+        //public async Task<IActionResult> UploadProfilePicture(int userId, IFormFile file)
+        //{
+        //    if (file == null || file.Length == 0)
+        //        return BadRequest(new { message = "No file uploaded." });
+        //
+        //    var filePath = Path.Combine("wwwroot", "uploads", file.FileName); // Путь для сохранения файла
+        //    using (var stream = new FileStream(filePath, FileMode.Create))
+        //    {
+        //        await file.CopyToAsync(stream);
+        //    }
+        //
+        //    var profilePictureUrl = $"/uploads/{file.FileName}"; // URL для доступа к файлу
+        //    await _userService.UpdateProfilePicture(userId, profilePictureUrl);
+        //
+        //    return Ok(new { Url = profilePictureUrl });
+        //}
+
+    }
 }
