@@ -1,38 +1,29 @@
+// UserCard.js
 import React, { useState } from 'react';
 import { FaUser, FaEdit, FaTrashAlt, FaUserShield, FaUserTie } from 'react-icons/fa';
-import UserDetailsModal from './UserDetailsModal'; // Импортируем компонент модального окна
+import UserDetailsModal from './UserDetailsModal';
 
 // Функция для получения изображения по отделу
 const getImageByDepartment = (department) => {
   switch (department) {
-    case 'IT':
-      return '/ITDepartment.jpg';
-    case 'HR':
-      return '/HRDepartment.jpg';
-    case 'Finance':
-      return '/FinanceDepartment.jpg';
-    case 'Marketing':
-      return '/MarketingDepartment.jpg';
-    case 'Operations':
-      return '/OperationsDepartment.jpg';
-    default:
-      return '/AllDepartment.jpg';
+    case 'IT': return '/ITDepartment.jpg';
+    case 'HR': return '/HRDepartment.jpg';
+    case 'Finance': return '/FinanceDepartment.jpg';
+    case 'Marketing': return '/MarketingDepartment.jpg';
+    case 'Operations': return '/OperationsDepartment.jpg';
+    default: return '/AllDepartment.jpg';
   }
 };
 
 const UserCard = ({ user, currentUser, onUserClick, onEditClick, onDeleteClick }) => {
   const [showModal, setShowModal] = useState(false);
-
   const department = user.department;
 
   const getUserIcon = (status) => {
     switch (status) {
-      case 'admin':
-        return <FaUserShield className="text-lg mr-1" />;
-      case 'manager':
-        return <FaUserTie className="text-lg mr-1" />;
-      default:
-        return null;
+      case 'admin': return <FaUserShield className="text-lg mr-1" />;
+      case 'manager': return <FaUserTie className="text-lg mr-1" />;
+      default: return null;
     }
   };
 
@@ -50,10 +41,7 @@ const UserCard = ({ user, currentUser, onUserClick, onEditClick, onDeleteClick }
         }}
       >
         <FaUser className="text-5xl mb-1" style={{ zIndex: 2 }} />
-        <div
-          className="absolute inset-0 bg-black opacity-50 rounded-lg"
-          style={{ zIndex: 1 }}
-        />
+        <div className="absolute inset-0 bg-black opacity-50 rounded-lg" style={{ zIndex: 1 }} />
 
         <div style={{ zIndex: 2 }} className="flex items-center"> 
           <span className="font-semibold text-lg">{user.username}</span>
@@ -88,7 +76,11 @@ const UserCard = ({ user, currentUser, onUserClick, onEditClick, onDeleteClick }
         </div>
       </div>
 
-      {showModal && <UserDetailsModal user={user} onClose={() => setShowModal(false)} />}
+      <UserDetailsModal 
+        isOpen={showModal} // Передаем isOpen
+        user={user}
+        onClose={() => setShowModal(false)} 
+      />
     </>
   );
 };

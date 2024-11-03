@@ -171,8 +171,14 @@ const UserList = ({ currentUser }) => {
 
           <div
             className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 transition-all duration-500 ease-in-out ${
-              expandedDepartments[department] ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+              expandedDepartments[department] ? 'opacity-100' : 'opacity-0 overflow-hidden'
             }`}
+            style={{
+              maxHeight: expandedDepartments[department] ? '24rem' : '0',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              scrollbarGutter: 'stable' // предотвращает изменение ширины при появлении scroll bar
+            }}
           >
             {groupedUsers[department]
               .filter(user => user.username.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -190,7 +196,7 @@ const UserList = ({ currentUser }) => {
         </div>
       ))}
 
-      {/* User Details Modal */}
+      {/* User Details Modal */} 
       {isModalOpen && selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
@@ -258,7 +264,7 @@ const UserList = ({ currentUser }) => {
               </button>
               <button 
                 onClick={() => setDeleteModalOpen(false)} 
-                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
               >
                 Cancel
               </button>
