@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const AddUserForm = ({ onAddUser }) => {
   const [username, setUsername] = useState('');
@@ -6,45 +6,48 @@ const AddUserForm = ({ onAddUser }) => {
   const [lastName, setLastName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [hireDate, setHireDate] = useState('');
-  const [status, setStatus] = useState('worker'); // По умолчанию worker
-  const [password, setPassword] = useState(''); // Состояние для пароля
-  const [department, setDepartment] = useState('IT'); // По умолчанию IT
-  const [profilePicture, setProfilePicture] = useState(null); // Состояние для хранения фотографии профиля
+  const [status, setStatus] = useState('');
+  const [password, setPassword] = useState('');
+  const [department, setDepartment] = useState('All');
+  const [profilePicture, setProfilePicture] = useState(null);
+
+  // Используем useEffect для отслеживания изменения статуса
+  useEffect(() => {
+    if (status === 'admin') {
+      setDepartment('admins'); // Устанавливаем department в 'admins', если статус admin
+    } else if (status === 'worker' || status === 'manager') {
+      setDepartment('IT'); // Устанавливаем начальное значение для worker или manager
+    }
+  }, [status]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const userData = {
-        username,
-        firstName,
-        lastName,
-        birthDate,
-        hireDate,
-        status,
-        password,
-        department,
+      username,
+      firstName,
+      lastName,
+      birthDate,
+      hireDate,
+      status,
+      password,
+      department,
     };
 
-    console.log("User Data:", userData); // Вывод значений в консоль
+    console.log('User Data:', userData);
 
-    // Вызываем функцию для добавления пользователя
     onAddUser(userData);
-    
+
     // Сбрасываем поля формы
     setUsername('');
     setFirstName('');
     setLastName('');
     setBirthDate('');
     setHireDate('');
-    setStatus('worker');
+    setStatus('');
     setPassword('');
     setDepartment('IT');
-};
-
-
-  //const handleFileChange = (e) => {
-  //  setProfilePicture(e.target.files[0]); // Сохраняем выбранный файл
-  //};
+  };
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
@@ -142,48 +145,38 @@ const AddUserForm = ({ onAddUser }) => {
           onChange={(e) => setStatus(e.target.value)}
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         >
+          <option value="">Select Status</option>
           <option value="worker">Worker</option>
           <option value="manager">Manager</option>
           <option value="admin">Admin</option>
         </select>
       </div>
 
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="department">
-          Department
-        </label>
-        <select
-          id="department"
-          value={department}
-          onChange={(e) => setDepartment(e.target.value)}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-        >
-          <option value="IT">IT</option>
-          <option value="HR">HR</option>
-          <option value="Finance">Finance</option>
-          <option value="Marketing">Marketing</option>
-          <option value="Operations">Operations</option>
-        </select>
-      </div>
+      {(status === 'worker' || status === 'manager') && (
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="department">
+            Department
+          </label>
+          <select
+            id="department"
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          >
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Operations">Operations</option>
+          </select>
+        </div>
+      )}
 
-      {/*<div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="profilePicture">
-          Profile Picture
-        </label>
-        <input
-          id="profilePicture"
-          type="file"
-          accept="image/*" // Ограничиваем выбор только изображениями
-          onChange={handleFileChange}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-        />
-      </div>
-        */}
       <div className="flex items-center justify-between">
         <button
           type="submit"
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        > 
+        >
           Add User
         </button>
       </div>

@@ -2,12 +2,13 @@ import { useState } from 'react';
 
 // Компонент для редактирования задачи
 const EditTaskModal = ({ isOpen, onClose, task, onSave }) => {
-  const [status, setStatus] = useState(task?.status || '');
+  const [status, setStatus] = useState(task?.progressPercentage > 0 ? task?.status : 'Issued');
   const [progressPercentage, setProgress] = useState(task?.progressPercentage || 0); // Прогресс по умолчанию 0
 
   const handleSave = () => {
     onSave({ ...task, status, progressPercentage}); // Сохраняем только статус и прогресс
     onClose(); // Закрыть модальное окно после сохранения
+    console.log(task);
   };
 
   if (!isOpen || !task) return null;

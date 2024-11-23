@@ -1,17 +1,40 @@
 import { useContext, useEffect, useState } from 'react';
-import Select from 'react-select'; // Импортируем Select из react-select
-import API from './api'; // Импортируйте ваш API для отправки запросов
+import Select from 'react-select';
+import API from './api';
 import { AuthContext } from './context/AuthContext';
 
-const CreateTask = () => {
+const CreateTask = ({ currentUser }) => {
   const { auth } = useContext(AuthContext);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
   const [priority, setPriority] = useState('');
   const [assignedUserIds, setAssignedUserIds] = useState([]);
-  const [notes, setNotes] = useState(''); // Добавлено состояние для заметок
+  const [notes, setNotes] = useState('');
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await API.get(`/api/User/${currentUser.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setUserData(response.data);
+      } catch (err) {
+        setError(err.response?.data || 'Error loading user data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [currentUser]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -39,8 +62,8 @@ const CreateTask = () => {
       description,
       deadline,
       priority,
-      status: "Issued",
-      notes: notes.length > 0 ? notes : "EMPTY...",  
+      status: 'Issued',
+      notes: notes.length > 0 ? notes : 'EMPTY...',
       assignedUserIds: assignedUserIds.length > 0 ? assignedUserIds : [0],
     };
 
@@ -62,15 +85,19 @@ const CreateTask = () => {
     setAssignedUserIds(ids);
   };
 
-  // Функция для группировки пользователей по департаментам
   const groupUsersByDepartment = () => {
     const departments = {};
-    users.forEach(user => {
+    const filteredUsers = auth.role === 'manager'
+      ? users.filter(user => user.status === 'worker' && user.department === userData.department)
+      : users;
+
+    filteredUsers.forEach(user => {
       if (!departments[user.department]) {
         departments[user.department] = [];
       }
-      departments[user.department].push({ value: user.id, label: `${user.username} (${user.role})` });
+      departments[user.department].push({ value: user.id, label: `${user.username} (${user.status})` });
     });
+
     return departments;
   };
 
@@ -131,11 +158,10 @@ const CreateTask = () => {
         <label className="block">Notes</label>
         <textarea
           value={notes}
-          onChange={(e) => setNotes(e.target.value)} // Обновляем состояние заметок
+          onChange={(e) => setNotes(e.target.value)}
           className="border p-2 w-full"
         />
       </div>
-      {/* Переместили блок "Assign To" ниже остальных элементов */}
       <div>
         <label className="block mb-2 font-semibold">Assign To</label>
         <Select
@@ -145,6 +171,7 @@ const CreateTask = () => {
           onChange={handleUserSelect}
           className="basic-multi-select"
           classNamePrefix="select"
+          menuPlacement="top" // Меню будет выпадать вверх
           styles={{
             control: (base) => ({
               ...base,
@@ -153,6 +180,11 @@ const CreateTask = () => {
               '&:hover': {
                 borderColor: '#blue',
               },
+            }),
+            menu: (base) => ({
+              ...base,
+              maxHeight: '150px', // Ограничиваем высоту меню
+              overflowY: 'auto',  // Добавляем прокрутку
             }),
             multiValue: (base) => ({
               ...base,

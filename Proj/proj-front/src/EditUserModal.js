@@ -4,14 +4,13 @@ const EditUserModal = ({
   isOpen,
   updatedUser,
   setUpdatedUser,
-  handleEditSubmit,
+  onSubmit,
   onClose
 }) => {
-  if (!isOpen) return null;
-
+  if (!isOpen) return null;  
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <form onSubmit={handleEditSubmit} className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+      <form onSubmit={onSubmit} className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-lg font-bold mb-4">Edit User</h2>
 
         {/* Username */}
@@ -78,16 +77,16 @@ const EditUserModal = ({
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-between">
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Save
-          </button>
+        <div className="flex justify-between"> 
           <button 
             type="button" 
             onClick={onClose} 
             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           >
             Cancel
+          </button>
+          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Save
           </button>
         </div>
       </form>

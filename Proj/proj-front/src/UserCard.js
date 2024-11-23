@@ -1,7 +1,8 @@
 // UserCard.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaUser, FaEdit, FaTrashAlt, FaUserShield, FaUserTie } from 'react-icons/fa';
 import UserDetailsModal from './UserDetailsModal';
+import photosAPI from './photosAPI';
 
 // Функция для получения изображения по отделу
 const getImageByDepartment = (department) => {
@@ -27,6 +28,54 @@ const UserCard = ({ user, currentUser, onUserClick, onEditClick, onDeleteClick }
     }
   };
 
+  const [profilePictureUrl, setProfilePictureUrl] = useState(null);
+
+  useEffect(() => {
+    if (user.profilePicturePath) {
+      const fetchImageUrl = async () => {
+        try {
+          const imagePath = "api/User/profile-picture/" + removeUploadPrefix(user.profilePicturePath);
+   
+          const response = await photosAPI.get(imagePath, { responseType: 'arraybuffer' });
+   
+          const extension = user.profilePicturePath.split('.').pop().toLowerCase();
+          let mimeType = 'image/jpeg'; // по умолчанию
+  
+          if (extension === 'png') {
+            mimeType = 'image/png';
+          } else if (extension === 'gif') {
+            mimeType = 'image/gif';
+          } else if (extension === 'webp') {
+            mimeType = 'image/webp';
+          }
+  
+          const blob = new Blob([response.data], { type: mimeType });
+          const imageUrl = URL.createObjectURL(blob);
+          
+          setProfilePictureUrl(imageUrl);  
+        } catch (err) {
+          console.error('Error loading image:', err);
+        }
+      };
+  
+      fetchImageUrl();  // Вызов асинхронной функции внутри useEffect
+    }
+  }, [user.profilePicturePath]);
+  
+
+  function removeUploadPrefix(imagePath) {
+    const prefix = 'uploads\\profile-pictures\\';
+    if (imagePath && imagePath.startsWith(prefix)) {
+      return imagePath.substring(prefix.length);
+    }
+    return imagePath;  // если путь не начинается с указанного префикса, возвращаем его без изменений
+  }
+
+  const getDefaultIcon = () => {
+    return <FaUser className="w-full h-full object-cover transform transition-transform duration-200 hover:scale-110" />;
+  };
+
+  
   return (
     <>
       <div
@@ -40,7 +89,21 @@ const UserCard = ({ user, currentUser, onUserClick, onEditClick, onDeleteClick }
           backgroundPosition: 'center',
         }}
       >
-        <FaUser className="text-5xl mb-1" style={{ zIndex: 2 }} />
+          <div className="relative w-16 h-16 overflow-hidden rounded-full">
+          {/* Если есть аватарка, показываем её, если нет — иконку пользователя */}
+          {profilePictureUrl ? (
+            <img 
+              src={profilePictureUrl} 
+              alt="Profile" 
+              className="w-full h-full object-cover transform transition-transform duration-200 hover:scale-110" 
+            />
+          ) : (
+            getDefaultIcon() // Иконка пользователя по умолчанию
+          )}
+        </div>
+
+
+
         <div className="absolute inset-0 bg-black opacity-50 rounded-lg" style={{ zIndex: 1 }} />
 
         <div style={{ zIndex: 2 }} className="flex items-center"> 
