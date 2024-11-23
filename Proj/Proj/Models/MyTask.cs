@@ -24,7 +24,8 @@
             Issued,
             InProgress,
             Completed,
-            NotCompleted
+            NotCompleted,
+            Overdue
         */
 
         public string Priority { get; set; }

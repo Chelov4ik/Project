@@ -18,7 +18,9 @@ namespace Proj.Services
         Task DeleteUser(int id);
         object GenerateTokensForUser(User user);
         Task<AuthResponseDTO> AuthenticateAsync(LoginDTO model);
-        Task UpdateUser(int id, UpdateUserDTO updateUserDto);
-        //Task UpdateProfilePicture(int userId, string profilePictureUrl);
+        Task UpdateUser(int id, UpdateUserDTO updateUserDTO);
+        Task<(string FirstName, string LastName)> GetUserNameById(int id); 
+        Task<string> UploadProfilePicture(int userId, IFormFile file);
+        Task<byte[]> GetProfilePictureAsync(string filename);
     }
 }

@@ -13,11 +13,13 @@ namespace Proj.Services
     {
         private readonly AppDbContext _context;
         private readonly ITokenService _tokenService;
+        private readonly IWebHostEnvironment _env;
 
-        public UserService(AppDbContext context, ITokenService tokenService)
+        public UserService(AppDbContext context, ITokenService tokenService, IWebHostEnvironment env)
         {
             _context = context;
             _tokenService = tokenService;
+            _env = env;
         }
 
         public async Task<AuthResponseDTO> AuthenticateAsync(LoginDTO model)
@@ -216,8 +218,19 @@ namespace Proj.Services
             return _context.Users.SingleOrDefault(u => u.RefreshToken == refreshToken);
         }
 
+        public async Task<(string FirstName, string LastName)> GetUserNameById(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                throw new Exception($"User with ID {id} not found.");
+            }
+            return (user.FirstName, user.LastName);
+        }
+
+
         // Proj.Services/UserService.cs
-        public async Task UpdateUser(int id, UpdateUserDTO updateUserDto)
+        public async Task UpdateUser(int id, UpdateUserDTO updateUserDTO)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
@@ -225,30 +238,105 @@ namespace Proj.Services
                 throw new Exception($"User with ID {id} not found.");
             }
 
-            // Обновляем свойства пользователя
-            user.Username = updateUserDto.Username ?? user.Username;
-            user.FirstName = updateUserDto.FirstName ?? user.FirstName;
-            user.LastName = updateUserDto.LastName ?? user.LastName;
-            user.BirthDate = updateUserDto.BirthDate != default ? updateUserDto.BirthDate : user.BirthDate;
-            user.HireDate = updateUserDto.HireDate != default ? updateUserDto.HireDate : user.HireDate;
-            user.Status = updateUserDto.Status ?? user.Status;
-            user.TaskIds = updateUserDto.TaskIds ?? user.TaskIds;
+            // Проверяем текущий пароль, если пользователь хочет изменить его
+            if (!string.IsNullOrEmpty(updateUserDTO.CurrentPassword) && !string.IsNullOrEmpty(updateUserDTO.NewPassword))
+            {
+                if (!BCrypt.Net.BCrypt.Verify(updateUserDTO.CurrentPassword, user.Password))
+                {
+                    throw new Exception("Current password is incorrect.");
+                }
 
-            await _context.SaveChangesAsync(); // Сохраняем изменения
+                // Хешируем и обновляем новый пароль
+                user.Password = BCrypt.Net.BCrypt.HashPassword(updateUserDTO.NewPassword);
+            }
+
+            // Обновляем другие свойства
+            user.Username = updateUserDTO.Username ?? user.Username;
+            user.FirstName = updateUserDTO.FirstName ?? user.FirstName;
+            user.LastName = updateUserDTO.LastName ?? user.LastName;
+            user.BirthDate = updateUserDTO.BirthDate != default ? updateUserDTO.BirthDate : user.BirthDate;
+            user.HireDate = updateUserDTO.HireDate != default ? updateUserDTO.HireDate : user.HireDate;
+            user.Department = updateUserDTO.Department ?? user.Department;
+            user.Status = updateUserDTO.Status ?? user.Status;
+            user.TaskIds = updateUserDTO.TaskIds ?? user.TaskIds;
+            user.ProfilePicturePath = updateUserDTO.ProfilePicturePath ?? user.ProfilePicturePath;
+
+            //// Обработка файла
+            //if (file != null)
+            //{
+            //    var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "profile-pictures");
+            //    if (!Directory.Exists(uploadsFolder))
+            //    {
+            //        Directory.CreateDirectory(uploadsFolder);
+            //    }
+
+            //    var fileName = $"{id}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            //    var filePath = Path.Combine(uploadsFolder, fileName);
+
+            //    using (var stream = new FileStream(filePath, FileMode.Create))
+            //    {
+            //        await file.CopyToAsync(stream);
+            //    }
+
+            //    // Сохраняем путь к файлу
+            //    user.ProfilePicturePath = Path.Combine("uploads", "profile-pictures", fileName);
+            //}
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
         }
 
 
-        //public async Task UpdateProfilePicture(int userId, string profilePictureUrl)
-        //{
-        //    var user = await _context.Users.FindAsync(userId);
-        //    if (user == null)
-        //    {
-        //        throw new Exception($"User with ID {userId} not found.");
-        //    }
-        //
-        //    user.ProfilePictureUrl = profilePictureUrl;
-        //    await _context.SaveChangesAsync();
-        //}
+        public async Task<byte[]> GetProfilePictureAsync(string filename)
+        {
+            var filePath = Path.Combine(_env.WebRootPath, "uploads", "profile-pictures", filename);
+            if (!System.IO.File.Exists(filePath))
+            {
+                throw new FileNotFoundException("Profile picture not found.", filename);
+            }
+
+            return await System.IO.File.ReadAllBytesAsync(filePath);
+        }
+
+
+        public async Task<string> UploadProfilePicture(int userId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                throw new ArgumentException("No file uploaded.");
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                throw new Exception($"User with ID {userId} not found.");
+            }
+
+            // Используем Directory.GetCurrentDirectory() для получения пути
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profile-pictures");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var fileName = $"{userId}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Сохраняем путь к файлу в базу данных
+            user.ProfilePicturePath = Path.Combine("uploads", "profile-pictures", fileName);
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return user.ProfilePicturePath; // Возвращаем путь для ответа
+        }
+
+
+
 
     }
 }

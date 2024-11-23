@@ -278,6 +278,22 @@
   },
   {
     "ContainingType": "Proj.Controllers.UserController",
+    "Method": "GetUserNameById",
+    "RelativePath": "api/User/{id}/name",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Proj.Controllers.UserController",
     "Method": "UpdateUserStatus",
     "RelativePath": "api/User/{id}/status",
     "HttpMethod": "PUT",
@@ -345,6 +361,43 @@
         "Name": "loginRequest",
         "Type": "Proj.Models.LoginDTO",
         "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Proj.Controllers.UserController",
+    "Method": "GetProfilePicture",
+    "RelativePath": "api/User/profile-picture/{filename}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "filename",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Proj.Controllers.UserController",
+    "Method": "UploadProfilePicture",
+    "RelativePath": "api/User/upload-profile-picture/{userId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

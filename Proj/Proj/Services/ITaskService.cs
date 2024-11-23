@@ -6,6 +6,7 @@ namespace Proj.Services
 {
     public interface ITaskService
     {
+        Task<IEnumerable<MyTask>> GetOverdueTasks();
         Task<IEnumerable<MyTask>> GetAllTasks();
         Task<MyTask> GetTaskById(int id);
         Task<IEnumerable<MyTask>> GetTasksByUserId(int userId);
@@ -13,5 +14,6 @@ namespace Proj.Services
         Task UpdateTask(MyTask task);
         Task DeleteTask(int id);
         Task AssignTaskToUser(int userId, int taskId);
+        Task CheckAndUpdateOverdueTasks();
     }
 }

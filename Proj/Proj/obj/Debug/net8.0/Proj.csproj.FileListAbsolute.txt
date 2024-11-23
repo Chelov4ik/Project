@@ -276,3 +276,4 @@ C:\Users\firud\OneDrive\Рабочий стол\Proj\Proj\obj\Debug\net8.0\refin
 C:\Users\firud\OneDrive\Рабочий стол\Proj\Proj\obj\Debug\net8.0\Proj.pdb
 C:\Users\firud\OneDrive\Рабочий стол\Proj\Proj\obj\Debug\net8.0\Proj.genruntimeconfig.cache
 C:\Users\firud\OneDrive\Рабочий стол\Proj\Proj\obj\Debug\net8.0\ref\Proj.dll
+C:\Users\firud\OneDrive\Рабочий стол\Proj\Proj\bin\Debug\net8.0\Proj.staticwebassets.runtime.json
