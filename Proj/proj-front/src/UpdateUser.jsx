@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import API from './api';
 import { AiOutlineArrowLeft } from 'react-icons/ai';
 import photosAPI from './photosAPI';
-import { FiImage } from 'react-icons/fi';
+import { FiImage, FiUser } from 'react-icons/fi';
 
 const UpdateUser = ({ userId, setCurrentSection }) => {
   const navigate = useNavigate();
@@ -122,21 +122,21 @@ const UpdateUser = ({ userId, setCurrentSection }) => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("ProfilePicturePath", file.name); // Добавление пути к изображению, если необходимо
+      formData.append("ProfilePicturePath", file.name); 
   
-      const token = localStorage.getItem('token'); // Получение токена для авторизации
+      const token = localStorage.getItem('token');  
   
       const response = await API.post(`/api/User/upload-profile-picture/${userId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`, // Добавление Bearer токена для авторизации
+          Authorization: `Bearer ${token}`,  
         },
       });
   
       // Если файл был успешно загружен
       if (response.data.FilePath) {
         console.log("File uploaded successfully", response.data.FilePath);
-        return response.data.FilePath; // Возвращаем путь файла
+        return response.data.FilePath;  
       }
     } catch (error) {
       console.error('Error uploading file:', error.response?.data || error.message);
@@ -148,22 +148,18 @@ const UpdateUser = ({ userId, setCurrentSection }) => {
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      try {
-        // Загружаем файл
+      try { 
         const filePath = await uploadProfilePicture(userId, file);
-  
-        // Создаём URL для отображения изображения
+   
         const imageUrl = URL.createObjectURL(file); // Создаём URL для нового изображения
-  
-        // Обновляем форму и сразу отображаем изображение
+   
         setFormData((prevData) => ({
           ...prevData,
-          profilePicturePath: filePath, // Сохраняем путь файла в состоянии
+          profilePicturePath: filePath,  
         }));
-        setProfilePictureUrl(imageUrl);  // Устанавливаем новый URL изображения
+        setProfilePictureUrl(imageUrl);   
   
-      } catch (error) {
-        // Обработка ошибок, если загрузка не удалась
+      } catch (error) { 
         setError(error.message);
       }
     }
@@ -241,15 +237,17 @@ const UpdateUser = ({ userId, setCurrentSection }) => {
         </div>
       )}
 
-      {/* Display current profile picture */}
-      {profilePictureUrl && (
+      {/* Display current profile picture */} 
+      
         <div className="flex justify-center mb-6 relative">
+        {profilePictureUrl ? (
           <img
             src={profilePictureUrl}
             alt="Profile"
             className="w-40 h-40 object-cover rounded-full border-4 border-blue-500"
-          />
-          {/* Button for avatar change */}
+          /> ) : (
+          <FiUser className="w-40 h-40 object-cover rounded-full border-4 border-blue-500"/>)}
+
           <label htmlFor="profilePicturePath" className="absolute bottom-0 right-0 mb-2 mr-2">
             <FiImage className="w-8 h-8 text-blue-500 cursor-pointer hover:text-blue-600 transition duration-300" />
           </label>
@@ -261,7 +259,7 @@ const UpdateUser = ({ userId, setCurrentSection }) => {
             className="hidden"
           />
         </div>
-      )}
+      
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

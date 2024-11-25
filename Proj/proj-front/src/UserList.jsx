@@ -111,7 +111,7 @@ const UserList = ({ currentUser }) => {
 
       return acc;
     }, {});
-  } else if (currentUser.role === 'manager') {
+  } else if (currentUser.role === 'manager' || currentUser.role === 'worker') {
     groupedUsers = users.reduce((acc, user) => {
       if (user.department === userData?.department) {
         const department = user.department || 'Other';
@@ -368,7 +368,7 @@ const UserList = ({ currentUser }) => {
           updatedUser={updatedUser}
           setUpdatedUser={setUpdatedUser}
           onSubmit={handleEditSubmit}
-          onCancel={() => setEditModalOpen(false)}
+          onClose={() => setEditModalOpen(false)}
         />
     </div>
   );

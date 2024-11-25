@@ -61,7 +61,6 @@ const UserCard = ({ user, currentUser, onUserClick, onEditClick, onDeleteClick }
       fetchImageUrl();  // Вызов асинхронной функции внутри useEffect
     }
   }, [user.profilePicturePath]);
-  
 
   function removeUploadPrefix(imagePath) {
     const prefix = 'uploads\\profile-pictures\\';
@@ -75,13 +74,14 @@ const UserCard = ({ user, currentUser, onUserClick, onEditClick, onDeleteClick }
     return <FaUser className="w-full h-full object-cover transform transition-transform duration-200 hover:scale-110" />;
   };
 
-  
   return (
     <>
       <div
         key={user.id}
         onClick={() => setShowModal(true)}
-        className="relative h-50 p-2 rounded-lg transform transition-transform duration-300 hover:scale-105 text-white flex flex-col items-center cursor-pointer"
+        className={`relative p-2 rounded-lg transform transition-transform duration-300 hover:scale-105 text-white flex flex-col items-center cursor-pointer ${
+          currentUser.role !== "admin" ? "justify-center" : ""
+        }`}
         style={{
           height: '150px',
           backgroundImage: `url(${getImageByDepartment(department)})`,
@@ -89,7 +89,10 @@ const UserCard = ({ user, currentUser, onUserClick, onEditClick, onDeleteClick }
           backgroundPosition: 'center',
         }}
       >
-          <div className="relative w-16 h-16 overflow-hidden rounded-full">
+        {/* Затемненный фон */}
+        <div className="absolute inset-0 bg-black bg-opacity-40 rounded-lg" style={{ zIndex: 0 }}></div>
+
+        <div className={`relative ${currentUser.role !== "admin" ? "w-24 h-24" : "w-16 h-16"} overflow-hidden rounded-full`} style={{ zIndex: 1 }}>
           {/* Если есть аватарка, показываем её, если нет — иконку пользователя */}
           {profilePictureUrl ? (
             <img 
@@ -102,41 +105,40 @@ const UserCard = ({ user, currentUser, onUserClick, onEditClick, onDeleteClick }
           )}
         </div>
 
-
-
-        <div className="absolute inset-0 bg-black opacity-50 rounded-lg" style={{ zIndex: 1 }} />
-
-        <div style={{ zIndex: 2 }} className="flex items-center"> 
+        {/* Если не админ, имя растягивается */}
+        <div
+          style={{ zIndex: 2 }}
+          className={`flex items-center mt-2 ${currentUser.role !== "admin" ? "text-xl font-bold" : ""}`}
+        >
           <span className="font-semibold text-lg">{user.username}</span>
-          {getUserIcon(user.status)} 
+          {currentUser.role === "admin" && getUserIcon(user.status)}
         </div>
 
-        <div className="mt-2 flex space-x-1" style={{ zIndex: 2 }}>
-          {currentUser.role === "admin" && (
-            <>
+        {/* Кнопки видны только админу */}
+        {currentUser.role === "admin" && (
+          <div className="mt-2 flex space-x-1" style={{ zIndex: 2 }}>
+            <button
+              className="flex items-center text-gray-800 border border-gray-300 px-3 py-2 rounded hover:bg-gray-200 transition-colors duration-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditClick(user);
+              }}
+            >
+              <FaEdit className="text-lg" />
+            </button>
+            {user.status !== "admin" && (
               <button
-                className="flex items-center text-gray-800 border border-gray-300 px-3 py-2 rounded hover:bg-gray-200 transition-colors duration-200"
+                className="flex items-center text-red-600 border border-red-300 px-3 py-2 rounded hover:bg-red-100 transition-colors duration-200"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onEditClick(user);
+                  onDeleteClick(user);
                 }}
               >
-                <FaEdit className="text-lg" />
+                <FaTrashAlt className="text-lg" />
               </button>
-              {user.status !== "admin" && (
-                <button
-                  className="flex items-center text-red-600 border border-red-300 px-3 py-2 rounded hover:bg-red-100 transition-colors duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteClick(user);
-                  }}
-                >
-                  <FaTrashAlt className="text-lg" />
-                </button>
-              )}
-            </>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       <UserDetailsModal 

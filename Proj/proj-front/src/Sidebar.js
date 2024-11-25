@@ -34,7 +34,7 @@ const Sidebar = ({ currentSection, setCurrentSection }) => {
       {/* Темная часть с меню */}
       <div className="p-2">
         <ul>
-          {(auth?.role === 'admin' || auth?.role === 'manager') && (
+          {(auth?.role === 'admin' || auth?.role === 'manager' || auth?.role === 'worker') && (
             <li
               className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"
               onClick={() => handleSectionChange('users')}

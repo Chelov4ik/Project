@@ -1,107 +1,29 @@
 import { useState } from 'react';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import EditTaskModal from './EditTaskModal';
 import ViewTaskModal from './ViewTaskModal';
 import API from './api';
 import './TaskList.css';
+
+const ItemType = 'TASK';
 
 const TaskList = ({ initialTasks, users = [] }) => {
   const [tasks, setTasks] = useState(initialTasks || []);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('All');
-  const [collapsedPriorities, setCollapsedPriorities] = useState({});
-  const [showCompletedTasks, setShowCompletedTasks] = useState(false);
 
-  const toggleTaskDetails = (task) => {
-    setSelectedTask(task);
-    setIsViewModalOpen(true);
-  };
+  const statusesOrder = ['Overdue', 'Issued', 'InProgress', 'Completed'];
 
   const handleEditTask = (task) => {
     setSelectedTask(task);
     setIsEditModalOpen(true);
   };
 
-  const handleDoneTask = (task) => {
-    if (task.status === 'Completed') {
-      if (task.progressPercentage === 0) {
-        task.status = 'NotCompleted';
-      } else {
-        task.status = 'InProgress';
-      }
-    } else {
-      task.status = 'Completed';
-    }
-    handleSaveTask(task);
-  };
-
-  const togglePriorityCollapse = (priority) => {
-    setCollapsedPriorities((prevState) => ({
-      ...prevState,
-      [priority]: !prevState[priority],
-    }));
-  };
-
-  const filteredTasks = (tasks || []).filter((task) => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPriority = priorityFilter === 'All' || task.priority === priorityFilter;
-    return matchesSearch && matchesPriority && task.status !== 'Completed';
-  });
-
-  const priorities = ['All', 'High', 'Medium', 'Low'];
-  const groupedTasks = priorities.reduce((acc, priority) => {
-    acc[priority] = filteredTasks.filter((task) => task.priority === priority);
-    return acc;
-  }, {});
-
-  const completedTasks = tasks.filter((task) => task.status === 'Completed');
-
-  const getOverdueColor = (status) => {
-    return status === 'Overdue' ? 'bg-red-300' : 'bg-white';
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Issued':
-        return 'bg-blue-500';
-      case 'InProgress':
-        return 'bg-yellow-500';
-      case 'Completed':
-        return 'bg-gray-500';
-      case 'NotCompleted':
-        return 'bg-red-500';
-      case 'Overdue':
-        return 'bg-red-800';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'High':
-        return 'bg-red-500';
-      case 'Medium':
-        return 'bg-yellow-500';
-      case 'Low':
-        return 'bg-blue-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  const renderProgressBar = (progressPercentage) => {
-    const safeProgress = Math.min(progressPercentage || 0, 100);
-    return (
-      <div className="relative w-full h-2 bg-gray-200 rounded">
-        <div
-          className="absolute top-0 left-0 h-full rounded progress-bar"
-          style={{ width: `${safeProgress}%` }}
-        />
-      </div>
-    );
+  const handleViewTask = (task) => {
+    setSelectedTask(task);
+    setIsViewModalOpen(true);
   };
 
   const handleSaveTask = async (updatedTask) => {
@@ -126,135 +48,155 @@ const TaskList = ({ initialTasks, users = [] }) => {
     }
   };
 
-  return (
-    <>
-      <div className="mb-4 flex">
-        <input
-          type="text"
-          placeholder="Search tasks..."
-          className="border rounded px-3 py-1 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+  const updateTaskStatus = (taskId, newStatus) => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === taskId ? { ...task, status: newStatus } : task
+    );
+    setTasks(updatedTasks);
+
+    const updatedTask = updatedTasks.find((task) => task.id === taskId);
+    handleSaveTask(updatedTask);
+  };
+
+  const groupedByStatus = tasks.reduce((acc, task) => {
+    if (!acc[task.status]) acc[task.status] = [];
+    acc[task.status].push(task);
+    return acc;
+  }, {});
+
+  const renderProgressBar = (progressPercentage) => {
+    const safeProgress = Math.min(progressPercentage || 0, 100);
+    return (
+      <div className="relative w-full h-2 bg-gray-200 rounded">
+        <div
+          className="absolute top-0 left-0 h-full rounded bg-blue-500"
+          style={{ width: `${safeProgress}%` }}
         />
-        <select
-          value={priorityFilter}
-          onChange={(e) => setPriorityFilter(e.target.value)}
-          className="ml-2 border rounded px-3 py-1 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-        >
-          {priorities.map((priority) => (
-            <option key={priority} value={priority}>
-              {priority}
-            </option>
-          ))}
-        </select>
       </div>
+    );
+  };
 
-      {Object.keys(groupedTasks).length === 0 ? (
-        <div className="text-gray-600">No tasks available.</div>
-      ) : (
-        <>
-          {priorities.slice(1).map(
-            (priority) =>
-              groupedTasks[priority].length > 0 && (
-                <div key={priority} className="mb-6">
-                  <div className="flex justify-between items-center">
-                    <h2
-                      className={`text-xl font-semibold mb-2 ${getPriorityColor(
-                        priority
-                      )} text-white p-2 rounded`}
-                    >
-                      {priority} Priority
-                    </h2>
-                    <button onClick={() => togglePriorityCollapse(priority)}>
-                      {collapsedPriorities[priority] ? '▼' : '▲'}
-                    </button>
-                  </div>
-                  <div
-                    className={`overflow-hidden transition-all duration-500 ${collapsedPriorities[priority] ? 'max-h-0 opacity-0' : 'max-h-screen opacity-100'}`}
-                  >
-                    <ul className="space-y-4 max-h-72 overflow-y-auto">
-                      {groupedTasks[priority].map((task) => (
-                        <li
-                          key={task.id}
-                          className={`flex ${getOverdueColor(
-                            task.status
-                          )} shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300`}
-                        >
-                          <div className={`w-2 ${getStatusColor(task.status)}`} />
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Issued':
+        return 'bg-blue-100 border-blue-500';
+      case 'InProgress':
+        return 'bg-yellow-100 border-yellow-500';
+      case 'Completed':
+        return 'bg-green-100 border-green-500';
+      case 'Overdue':
+        return 'bg-red-100 border-red-500';
+      default:
+        return 'bg-gray-100 border-gray-500';
+    }
+  };
 
-                          <div className="flex items-center ml-2">
-                            <input
-                              type="checkbox"
-                              checked={task.status === 'Completed'}
-                              onChange={() => handleDoneTask(task)}
-                              className="h-6 w-6 rounded-full border-gray-300 bg-white checked:bg-green-600 checked:border-transparent focus:outline-none transition duration-300 cursor-pointer"
-                            />
-                          </div>
+  const TaskCard = ({ task }) => {
+    const [, drag] = useDrag({
+      type: ItemType,
+      item: { id: task.id, status: task.status },
+      end: (item, monitor) => {
+        if (monitor.didDrop()) {
+          console.log('Dropped:', item);
+        }
+      },
+    });
 
-                          <div className="p-4 flex-1">
-                            <div onClick={() => toggleTaskDetails(task)} className="cursor-pointer">
-                              <h3 className="text-lg font-semibold text-gray-800">{task.title}</h3>
-                              <p className="text-gray-500">
-                                Status: <span>{task.status}</span>
-                              </p>
-                              {renderProgressBar(task.progressPercentage)}
-                            </div>
-                          </div>
-                          <button
-                             onClick={() => handleEditTask(task)}
-                             className={`rounded px-4 py-2 transition duration-300 ${
-                               task.status === 'Overdue'
-                                 ? 'bg-yellow-900 text-red-300 cursor-not-allowed'
-                                 : 'bg-yellow-500 text-white hover:bg-yellow-600'
-                             }`}
-                             disabled={task.status === 'Overdue'}
-                           >
-                             Edit
-                           </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )
+    const handleComplete = () => {
+      if (task.status !== 'Completed') {
+        updateTaskStatus(task.id, 'Completed');
+      }
+    };
+
+    const handleUndo = () => {
+      if (task.status === 'Completed') {
+        updateTaskStatus(task.id, 'Issued'); // Или другой статус
+      }
+    };
+
+    return (
+      <div
+        ref={drag}
+        className={`p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border cursor-pointer ${
+          task.status === 'Overdue' ? 'border-red-500' : 'bg-white'
+        }`}
+        onClick={() => handleViewTask(task)}
+      >
+        <h3 className="text-lg font-semibold text-gray-800">{task.title}</h3>
+        <p className="text-gray-500">Priority: {task.priority}</p>
+        <p className="text-gray-500">Status: {task.status}</p>
+        {renderProgressBar(task.progressPercentage)}
+        <div className="flex justify-between mt-4">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditTask(task);
+            }}
+            className="text-blue-500 hover:underline"
+          >
+            Edit
+          </button>
+          {/* Условная отрисовка кнопки */}
+          {task.status !== 'Completed' ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleComplete();
+              }}
+              className="text-green-500 hover:underline"
+            >
+              Complete
+            </button>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleUndo();
+              }}
+              className="text-yellow-500 hover:underline"
+            >
+              Undo
+            </button>
           )}
-          {completedTasks.length > 0 && (
-            <div className="mb-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold mb-2 bg-gray-500 text-white p-2 rounded">
-                  Completed Tasks
-                </h2>
-                <button onClick={() => setShowCompletedTasks((prev) => !prev)}>
-                  {showCompletedTasks ? '▲' : '▼'}
-                </button>
-              </div>
-              <div
-                className={`overflow-hidden transition-all duration-500 ${showCompletedTasks ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}
-              >
-                <ul className="space-y-4 max-h-72 overflow-y-auto">
-                  {completedTasks.map((task) => (
-                    <li
-                      key={task.id}
-                      className="flex bg-gray-200 shadow-md rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300"
-                    >
-                      <div className={`w-2 ${getStatusColor(task.status)}`} />
+        </div>
+      </div>
+    );
+  };
 
-                      <div className="p-4 flex-1">
-                        <h3 className="text-lg font-semibold text-gray-800">{task.title}</h3>
-                        <p className="text-gray-500">
-                          Status: <span>{task.status}</span>
-                        </p>
-                        {renderProgressBar(task.progressPercentage)}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+  const StatusColumn = ({ status, children }) => {
+    const [, drop] = useDrop({
+      accept: ItemType,
+      drop: (item) => {
+        console.log(`Dropped task ${item.id} into status: ${status}`);
+        if (item.status !== status) {
+          updateTaskStatus(item.id, status);
+        }
+      },
+    });
 
+    return (
+      <div ref={drop} className="flex-shrink-0">
+        <h2
+          className={`text-xl font-semibold mb-4 px-4 py-2 rounded-lg border ${getStatusColor(status)}`}
+        >
+          {status}
+        </h2>
+        <div className="space-y-4">{children}</div>
+      </div>
+    );
+  };
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+        {statusesOrder.map((status) => (
+          <StatusColumn key={status} status={status}>
+            {(groupedByStatus[status] || []).map((task) => (
+              <TaskCard key={task.id} task={task} />
+            ))}
+          </StatusColumn>
+        ))}
+      </div>
       <ViewTaskModal
         task={selectedTask}
         isOpen={isViewModalOpen}
@@ -266,7 +208,7 @@ const TaskList = ({ initialTasks, users = [] }) => {
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveTask}
       />
-    </>
+    </DndProvider>
   );
 };
 
