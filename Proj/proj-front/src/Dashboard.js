@@ -5,6 +5,7 @@ import TaskList from './TaskList';
 import MyTaskList from './MyTaskList';
 import UserList from './UserList';
 import AddUserForm from './AddUserForm';
+import AddNews from './AddNews';
 import Sidebar from './Sidebar';
 import CreateTask from './CreateTask';
 import { FaTasks, FaUserFriends, FaChartLine } from 'react-icons/fa';
@@ -15,6 +16,8 @@ const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [news, setNews] = useState([]);
+  const [selectedNews, setSelectedNews] = useState(null); // Для модального окна
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [loading, setLoading] = useState(true);
 
@@ -43,6 +46,11 @@ const Dashboard = () => {
           });
           setTasks(taskResponse.data);
         }
+
+        const newsResponse = await API.get('/api/News', {
+          headers: { Authorization: `Bearer ${auth.accessToken}` },
+        });
+        setNews(newsResponse.data.reverse());
       } catch (error) {
         console.error('Failed to fetch data:', error);
       } finally {
@@ -63,20 +71,8 @@ const Dashboard = () => {
     }
   };
 
-  const updateTask = async (task) => {
-    const response = await API.fetch(`/api/Tasks/${task.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: task.status, progress: task.progress }),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to update task');
-    }
-  };
-
   const handleAddUser = async (newUser) => {
     try {
-      console.log(newUser);
       const response = await API.post('/api/Auth/register', newUser, {
         headers: { Authorization: `Bearer ${auth.accessToken}` },
       });
@@ -86,12 +82,48 @@ const Dashboard = () => {
     }
   };
 
+  const handleAddNews = async (newNews) => {
+    try{
+      const response = await API.post('/api/News',newNews,{
+        headers: {Authorization: `Bearer ${auth.accessToken}`}
+      }) 
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const renderNews = () => {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {news.map((article) => (
+          <div
+            key={article.id}
+            className="bg-gray-50 p-6 rounded-lg shadow-lg transform transition duration-300 hover:scale-105 cursor-pointer hover:shadow-xl hover:bg-blue-100"
+            onClick={() => setSelectedNews(article)}
+          >
+            <h3 className="text-2xl font-semibold text-blue-700 mb-4">{article.title}</h3>
+            <p className="text-gray-700 mb-4">{article.summary}</p>
+            <button className="text-blue-600 hover:text-blue-800 transition duration-300">{new Intl.DateTimeFormat('en-EN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(article.publishedDate))}</button>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const renderSection = () => {
     switch (currentSection) {
       case 'users':
         return <UserList users={users} onDelete={handleDelete} onAddUser={handleAddUser} currentUser={auth} />;
       case 'addUser':
-        return <AddUserForm onAddUser={handleAddUser} />;
+          return <AddUserForm onAddUser={handleAddUser} />;
+      case 'addNews':
+        return <AddNews onAddNews={handleAddNews} />;
       case 'tasks':
         return <TaskList initialTasks={allTasks} users={users} />;
       case 'updateUser':
@@ -103,88 +135,48 @@ const Dashboard = () => {
       case 'dashboard':
       default:
         return (
-          <div className="flex flex-col items-center justify-center text-center p-10 bg-gray-50 animate-fadeIn">
-          {/* Заголовок страницы */}
-          <h1 className="text-4xl font-bold text-blue-600 mb-6 animate-bounce">
-            Welcome to Your Dashboard
-          </h1>
-          <p className="text-lg text-gray-600 mb-8">
-            Get an overview of your tasks, team members, and company achievements here!
-          </p>
-    
-          {/* Информация о компании */}
-          <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg mb-12">
-            <h2 className="text-3xl font-semibold text-blue-600 mb-4">
-              About MyCompany
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <p className="text-lg text-gray-600">
-                  <span className="font-semibold">MyCompany</span> is a leading global provider of innovative solutions, committed to transforming industries through cutting-edge technology and exceptional service. Established in 2010, we have grown into a trusted partner for businesses around the world, delivering excellence across various sectors including technology, healthcare, and logistics.
-                </p>
+          <div className="flex flex-col items-center justify-center text-center p-10 bg-gradient-to-br from-gray-100 to-gray-200 animate-fadeIn">
+            {/* Latest News */}
+            <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg mb-12">
+              <h2 className="text-3xl font-semibold text-blue-600 mb-4">Latest News</h2>
+              {renderNews()}
+            </div>
+
+            {/* Quick Actions */}
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
+              <div
+                className="bg-white p-6 rounded-lg shadow-lg transform transition duration-300 hover:scale-105 cursor-pointer hover:shadow-xl"
+                onClick={() => setCurrentSection('tasks')}
+              >
+                <FaTasks className="text-blue-500 text-4xl mb-4" />
+                <h2 className="text-2xl font-semibold mb-2">Manage Tasks</h2>
+                <p className="text-gray-600">View and manage all your tasks efficiently.</p>
               </div>
-              <div>
-                <img
-                  src="/path-to-company-photo.jpg" // замените на реальный путь к изображению
-                  alt="MyCompany"
-                  className="w-full h-full object-cover rounded-lg shadow-lg"
-                />
+              <div
+                className="bg-white p-6 rounded-lg shadow-lg transform transition duration-300 hover:scale-105 cursor-pointer hover:shadow-xl"
+                onClick={() => setCurrentSection('users')}
+              >
+                <FaUserFriends className="text-green-500 text-4xl mb-4" />
+                <h2 className="text-2xl font-semibold mb-2">Your Team</h2>
+                <p className="text-gray-600">Monitor the progress and performance of your team.</p>
               </div>
-            </div>
+              <div
+                className="bg-white p-6 rounded-lg shadow-lg transform transition duration-300 hover:scale-105 cursor-pointer hover:shadow-xl"
+                onClick={() => setCurrentSection('myTasks')}
+              >
+                <FaChartLine className="text-purple-500 text-4xl mb-4" />
+                <h2 className="text-2xl font-semibold mb-2">Track Progress</h2>
+                <p className="text-gray-600">Check overall progress with detailed analytics.</p>
+              </div>
+            </div> */}
           </div>
-    
-          {/* Миссия компании */}
-          <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg mb-12">
-            <h2 className="text-3xl font-semibold text-blue-600 mb-4">
-              Our Mission
-            </h2>
-            <p className="text-lg text-gray-600">
-              At MyCompany, our mission is to empower businesses through innovative solutions that drive efficiency, growth, and sustainability. We believe in fostering a culture of collaboration, where every team member contributes to the success of our clients and the communities we serve.
-            </p>
-          </div>
-    
-          {/* Достижения */}
-          <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg mb-12">
-            <h2 className="text-3xl font-semibold text-blue-600 mb-4">
-              Achievements
-            </h2>
-            <ul className="list-disc list-inside text-lg text-gray-600 space-y-2">
-              <li>Winner of the Global Innovation Award in 2022</li>
-              <li>Ranked in the top 50 most innovative companies worldwide</li>
-              <li>Over 100 successful projects completed across 25 countries</li>
-              <li>Partnerships with top Fortune 500 companies</li>
-            </ul>
-          </div>
-    
-          {/* Визуальные карточки для действий */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
-            <div
-              className="bg-white p-6 rounded-lg shadow-lg transform transition duration-300 hover:scale-105 cursor-pointer hover:shadow-xl"
-              onClick={() => setCurrentSection('tasks')}
-            >
-              <FaTasks className="text-blue-500 text-4xl mb-4" />
-              <h2 className="text-2xl font-semibold mb-2">Manage Tasks</h2>
-              <p className="text-gray-600">View and manage all your tasks efficiently.</p>
-            </div>
-            <div
-              className="bg-white p-6 rounded-lg shadow-lg transform transition duration-300 hover:scale-105 cursor-pointer hover:shadow-xl"
-              onClick={() => setCurrentSection('users')}
-            >
-              <FaUserFriends className="text-green-500 text-4xl mb-4" />
-              <h2 className="text-2xl font-semibold mb-2">Your Team</h2>
-              <p className="text-gray-600">Monitor the progress and performance of your team.</p>
-            </div>
-            <div
-              className="bg-white p-6 rounded-lg shadow-lg transform transition duration-300 hover:scale-105 cursor-pointer hover:shadow-xl"
-              onClick={() => setCurrentSection('myTasks')}
-            >
-              <FaChartLine className="text-purple-500 text-4xl mb-4" />
-              <h2 className="text-2xl font-semibold mb-2">Track Progress</h2>
-              <p className="text-gray-600">Check overall progress with detailed analytics.</p>
-            </div>
-          </div>
-        </div>
-      );
+        );
+    }
+  };
+
+  const closeModal = (e) => {
+    if (e.target === e.currentTarget) {
+      setSelectedNews(null);
     }
   };
 
@@ -199,11 +191,28 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen flex">
       <Sidebar setCurrentSection={setCurrentSection} />
-      <div className="flex-grow bg-gray-100 p-8 ml-16">  
-        <div className="bg-white shadow-lg rounded-lg p-6">
-          {renderSection()}
-        </div>
+      <div className="flex-grow bg-gray-100 p-8 ml-16">
+        <div className="bg-white shadow-lg rounded-lg p-6">{renderSection()}</div>
       </div>
+
+      {/* Модальное окно для новостей */}
+      {selectedNews && (
+        <div
+          className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 transition-all ease-in-out"
+          onClick={closeModal}
+        >
+          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 relative transform scale-110 transition-transform duration-300 ease-in-out">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-3xl"
+              onClick={() => setSelectedNews(null)}
+            >
+              ×
+            </button>
+            <h2 className="text-3xl font-semibold text-blue-800 mb-4">{selectedNews.title}</h2>
+            <p className="text-lg text-gray-800">{selectedNews.content}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

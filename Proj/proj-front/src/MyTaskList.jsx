@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import EditTaskModal from './EditTaskModal';
@@ -13,8 +13,26 @@ const MyTaskList = ({ initialTasks, users = [] }) => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [statusesOrder, setStatusesOrder] = useState([]);
+  const [newStatus, setNewStatus] = useState('');  // Для ввода нового статуса
 
-  const statusesOrder = ['Overdue', 'Issued', 'InProgress', 'Completed'];
+  // Загружаем статусы из localStorage при монтировании компонента
+  useEffect(() => {
+    const savedStatuses = JSON.parse(localStorage.getItem('statusesOrder'));
+    if (savedStatuses) {
+      setStatusesOrder(savedStatuses);
+    } else {
+      // Если в localStorage нет статусов, используем стандартные
+      setStatusesOrder(['Overdue', 'Issued', 'InProgress', 'Completed']);
+    }
+  }, []);
+
+  // Сохраняем статусы в localStorage при изменении
+  useEffect(() => {
+    if (statusesOrder.length > 0) {
+      localStorage.setItem('statusesOrder', JSON.stringify(statusesOrder));
+    }
+  }, [statusesOrder]);
 
   const handleEditTask = (task) => {
     setSelectedTask(task);
@@ -56,6 +74,14 @@ const MyTaskList = ({ initialTasks, users = [] }) => {
 
     const updatedTask = updatedTasks.find((task) => task.id === taskId);
     handleSaveTask(updatedTask);
+  };
+
+  const handleAddNewStatus = () => {
+    if (newStatus && !statusesOrder.includes(newStatus)) {
+      const updatedStatuses = [...statusesOrder, newStatus];
+      setStatusesOrder(updatedStatuses);
+      setNewStatus(''); // Очистить поле ввода
+    }
   };
 
   const groupedByStatus = tasks.reduce((acc, task) => {
@@ -197,6 +223,7 @@ const MyTaskList = ({ initialTasks, users = [] }) => {
           </StatusColumn>
         ))}
       </div>
+ 
       <ViewTaskModal
         task={selectedTask}
         isOpen={isViewModalOpen}
