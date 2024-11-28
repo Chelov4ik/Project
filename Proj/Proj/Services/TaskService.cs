@@ -100,7 +100,7 @@ namespace Proj.Services
         {
             var currentDate = DateTime.UtcNow; // Получаем текущую дату
             var overdueTasks = await _context.Tasks
-                .Where(t => t.Deadline < currentDate && t.Status != "Overdue")
+                .Where(t => t.Deadline < currentDate && t.Status != "Overdue" && t.Status != "Overdue")
                 .ToListAsync();
 
             if (overdueTasks.Any())
